@@ -1,29 +1,31 @@
-# Welcome to your Lovable project
+# IEEE BBDITM Webpage
 
-This project was built with [Lovable](https://lovable.dev).
+Official website for the **IEEE Student Branch – BBDITM Lucknow**.
 
-## Build with Lovable
+## Features
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+* Responsive modern UI
+* Events section
+* Team members section
+* Gallery page
+* Contact page
+* Supabase integration
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+## Tech Stack
 
-## Development
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* Supabase
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Run Locally
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+```bash
+npm install
 npm run dev
 ```
 
-## Built with
+## Repository
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+GitHub: https://github.com/MohammedSaif007/IEEE-BBDITM-Webpage
