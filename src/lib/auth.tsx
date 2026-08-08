@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [userId]);
 
   const roleNames = roles.map((r) => r.role);
-  const canEdit = ["counsellor", "chair", "editor"].some((r) => roleNames.includes(r as AppRole));
+  const canEdit = ["counsellor", "chair", "secretary", "editor"].some((r) => roleNames.includes(r as AppRole));
 
   const value: AuthValue = {
     user: session?.user ?? null,

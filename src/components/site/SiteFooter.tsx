@@ -3,7 +3,7 @@ import { Instagram, Linkedin, Mail, Youtube } from "lucide-react";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-border bg-secondary/50">
+    <footer className="mt-24 border-t border-border bg-secondary/40">
       <div className="section-shell grid gap-10 py-14 md:grid-cols-3">
         <div>
           <p className="font-display text-lg font-semibold">IEEE BBDITM Student Branch</p>
@@ -28,7 +28,7 @@ export function SiteFooter() {
                 aria-label={label}
                 target="_blank"
                 rel="noreferrer"
-                className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-colors hover:text-primary"
+                className="grid h-9 w-9 place-items-center rounded-md border border-border bg-card text-muted-foreground transition-all hover:text-primary hover:border-primary/30 hover:-translate-y-0.5"
               >
                 <Icon className="h-4 w-4" />
               </a>
@@ -44,6 +44,7 @@ export function SiteFooter() {
               { to: "/chapters", label: "Chapters & affinity groups" },
               { to: "/events", label: "Events" },
               { to: "/team", label: "Executive committee" },
+              { to: "/newsletter", label: "Newsletter" },
               { to: "/join", label: "Become a member" },
             ].map((l) => (
               <li key={l.to}>

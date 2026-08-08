@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Camera } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { chapters } from "@/data/site";
+import { societies } from "@/data/site";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -34,6 +35,9 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
     email: "",
@@ -43,6 +47,8 @@ function AuthPage() {
     branch: "",
     year_of_study: "",
     society: "",
+    phone: "",
+    enrollment_no: "",
   });
 
   useEffect(() => {
@@ -51,6 +57,28 @@ function AuthPage() {
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  async function uploadAvatar(userId: string): Promise<string | null> {
+    if (!avatarFile) return null;
+    const ext = avatarFile.name.split(".").pop() ?? "jpg";
+    const path = `${userId}/avatar.${ext}`;
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, avatarFile, { upsert: true });
+    if (upErr) {
+      console.error("Avatar upload error:", upErr.message);
+      return null;
+    }
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    return data.publicUrl;
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -77,12 +105,22 @@ function AuthPage() {
             branch: form.branch.trim(),
             year_of_study: form.year_of_study.trim(),
             society: form.society,
+            phone: form.phone.trim(),
+            enrollment_no: form.enrollment_no.trim(),
           },
         },
       });
-      if (err) setError(err.message);
-      else if (!data.session) setMessage("Account created. Check your email to confirm, then sign in.");
-      else navigate({ to: "/dashboard" });
+      if (err) {
+        setError(err.message);
+      } else if (data.user) {
+        // Upload avatar if provided
+        const avatarUrl = await uploadAvatar(data.user.id);
+        if (avatarUrl) {
+          await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", data.user.id);
+        }
+        if (!data.session) setMessage("Account created. Check your email to confirm, then sign in.");
+        else navigate({ to: "/dashboard" });
+      }
     }
     setBusy(false);
   }
@@ -117,6 +155,28 @@ function AuthPage() {
           <form onSubmit={onSubmit} className="space-y-4">
             {mode === "signup" && (
               <>
+                {/* Avatar upload */}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    className="group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-secondary/40 transition-all hover:border-primary/50 hover:bg-primary/5"
+                  >
+                    {avatarPreview ? (
+                      <img src={avatarPreview} alt="Avatar preview" className="h-full w-full object-cover" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" />
+                    )}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Camera className="h-5 w-5 text-white" />
+                    </div>
+                  </button>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  <span className="text-[11px] text-muted-foreground">
+                    {avatarFile ? avatarFile.name : "Upload profile photo (optional)"}
+                  </span>
+                </div>
+
                 <Field label="Full name">
                   <input required className={inputClass} value={form.full_name} onChange={set("full_name")} />
                 </Field>
@@ -140,13 +200,21 @@ function AuthPage() {
                 <Field label="Society / chapter">
                   <select className={inputClass} value={form.society} onChange={set("society")}>
                     <option value="">None</option>
-                    {chapters.map((c) => (
+                    {societies.map((c) => (
                       <option key={c.slug} value={c.slug}>
                         {c.name}
                       </option>
                     ))}
                   </select>
                 </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Phone">
+                    <input className={inputClass} placeholder="+91 ..." value={form.phone} onChange={set("phone")} />
+                  </Field>
+                  <Field label="Enrollment No.">
+                    <input className={inputClass} value={form.enrollment_no} onChange={set("enrollment_no")} />
+                  </Field>
+                </div>
               </>
             )}
 

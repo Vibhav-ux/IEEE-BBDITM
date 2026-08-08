@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Mail, MapPin, Send } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
+import contactCampus from "@/assets/contact-campus.png";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -35,11 +36,28 @@ function ContactPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Contact"
-        title="Talk to the branch"
-        description="Collaborations, sponsorships, speaker invites or membership questions — send us a note and a committee member will reply."
-      />
+      {/* Hero banner with campus image */}
+      <section className="relative overflow-hidden min-h-[40vh] flex items-center">
+        <img
+          src={contactCampus}
+          alt="BBDITM campus at golden hour"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="section-shell relative z-10 py-20">
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
+            Contact
+          </span>
+          <h1 className="mt-3 max-w-2xl text-3xl font-bold text-white md:text-5xl drop-shadow-lg">
+            Talk to the branch
+          </h1>
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 md:text-base">
+            Collaborations, sponsorships, speaker invites or membership questions — send us a note
+            and a committee member will reply.
+          </p>
+        </div>
+      </section>
 
       <section className="section-shell grid gap-10 py-16 md:grid-cols-[1fr_0.8fr]">
         <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-7">
@@ -110,6 +128,14 @@ function ContactPage() {
             >
               ieee.bbditm@gmail.com
             </a>
+          </div>
+          {/* Campus map */}
+          <div className="overflow-hidden rounded-xl border border-border">
+            <img
+              src={contactCampus}
+              alt="BBDITM campus aerial view"
+              className="h-48 w-full object-cover"
+            />
           </div>
         </div>
       </section>

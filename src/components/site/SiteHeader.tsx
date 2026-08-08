@@ -7,10 +7,10 @@ import { useAuth } from "@/lib/auth";
 const links = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
-  { to: "/chapters", label: "Chapters" },
+  { to: "/chapters", label: "Societies" },
+  { to: "/office-bearers", label: "Committee" },
   { to: "/events", label: "Events" },
   { to: "/gallery", label: "Album" },
-  { to: "/team", label: "Team" },
   { to: "/join", label: "Join" },
 ] as const;
 
@@ -26,7 +26,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-xl">
       <div className="section-shell flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">
@@ -46,15 +46,15 @@ export function SiteHeader() {
               key={l.to}
               to={l.to}
               activeOptions={{ exact: l.to === "/" }}
-              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-              activeProps={{ className: "bg-primary-soft text-accent-foreground" }}
+              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/8 hover:text-foreground"
+              activeProps={{ className: "bg-primary/8 text-primary font-semibold" }}
             >
               {l.label}
             </Link>
           ))}
           <Link
             to="/contact"
-            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-primary/8 hover:text-foreground"
           >
             Contact
           </Link>
@@ -62,7 +62,7 @@ export function SiteHeader() {
             <>
               <Link
                 to="/dashboard"
-                className="ml-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
+                className="ml-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
               >
                 Dashboard
               </Link>
@@ -77,7 +77,7 @@ export function SiteHeader() {
           ) : (
             <Link
               to="/auth"
-              className="ml-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              className="ml-2 rounded-md btn-primary px-4 py-2 text-sm font-semibold text-white"
             >
               Member login
             </Link>

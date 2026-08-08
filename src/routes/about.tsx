@@ -3,6 +3,8 @@ import { Compass, Flag, HeartHandshake } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { stats } from "@/data/site";
+import campusImage from "@/assets/campus-aerial.png";
+import collaborationImage from "@/assets/students-collaboration.png";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -52,10 +54,23 @@ function AboutPage() {
         description="The IEEE BBDITM Student Branch operates under the IEEE Uttar Pradesh Section, Region 10, at Babu Banarasi Das Institute of Technology and Management, Lucknow."
       />
 
+      {/* Campus image strip */}
+      <section className="section-shell -mt-8 mb-10">
+        <div className="overflow-hidden rounded-2xl shadow-xl">
+          <img
+            src={campusImage}
+            alt="BBDITM Campus"
+            className="h-64 w-full object-cover md:h-80"
+          />
+        </div>
+      </section>
+
       <section className="section-shell grid gap-5 pb-4 md:grid-cols-3">
         {pillars.map(({ Icon, title, body }) => (
-          <div key={title} className="rounded-xl border border-border bg-card p-6">
-            <Icon className="h-5 w-5 text-primary" />
+          <div key={title} className="group rounded-xl card-elevated p-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-all group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md animate-float">
+              <Icon className="h-5 w-5" />
+            </div>
             <h2 className="mt-4 text-lg font-semibold">{title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
           </div>
@@ -77,6 +92,13 @@ function AboutPage() {
               awards. Alongside it, each chapter runs its own calendar — from PES Day to robotics
               bootcamps and WIE mentorship circles.
             </p>
+            <div className="mt-6 overflow-hidden rounded-xl">
+              <img
+                src={collaborationImage}
+                alt="Students collaborating on projects"
+                className="h-48 w-full object-cover rounded-xl"
+              />
+            </div>
           </div>
           <dl className="grid grid-cols-2 gap-px self-start overflow-hidden rounded-xl border border-border bg-border">
             {stats.map((s) => (

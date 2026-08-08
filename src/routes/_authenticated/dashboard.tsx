@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { chapters } from "@/data/site";
+import { societies } from "@/data/site";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -30,6 +30,8 @@ type Profile = {
   branch: string | null;
   year_of_study: string | null;
   society: string | null;
+  enrollment_no: string | null;
+  avatar_url: string | null;
 };
 
 type Position = {
@@ -50,6 +52,7 @@ function Dashboard() {
   const [positions, setPositions] = useState<Position[]>([]);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -80,6 +83,7 @@ function Dashboard() {
         branch: profile.branch,
         year_of_study: profile.year_of_study,
         society: profile.society,
+        enrollment_no: profile.enrollment_no,
       })
       .eq("id", profile.id);
     if (err) setError(err.message);
@@ -87,6 +91,36 @@ function Dashboard() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     }
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    
+    setUploadingAvatar(true);
+    setError(null);
+    
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${user.id}/avatar.${ext}`;
+    
+    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    if (upErr) {
+      setError(upErr.message);
+      setUploadingAvatar(false);
+      return;
+    }
+    
+    const { data } = supabase.storage.from("avatars").getPublicUrl(path);
+    const avatarUrl = data.publicUrl;
+    
+    const { error: updateErr } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
+    if (updateErr) {
+      setError(updateErr.message);
+    } else if (profile) {
+      setProfile({ ...profile, avatar_url: avatarUrl });
+    }
+    
+    setUploadingAvatar(false);
   }
 
   const set = (k: keyof Profile) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -107,6 +141,22 @@ function Dashboard() {
             <p className="mt-4 text-sm text-muted-foreground">Loading…</p>
           ) : (
             <form onSubmit={save} className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="sm:col-span-2 mb-2 flex items-center gap-4">
+                <div className="relative h-16 w-16 overflow-hidden rounded-full border border-border bg-secondary/50">
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-lg font-bold text-muted-foreground">
+                      {profile.full_name.charAt(0)}
+                    </div>
+                  )}
+                  <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
+                    <span className="text-[10px] font-semibold text-white">Edit</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                  </label>
+                </div>
+                {uploadingAvatar && <span className="text-xs text-muted-foreground">Uploading...</span>}
+              </div>
               <label className="block sm:col-span-2">
                 <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Full name</span>
                 <input className={inputClass} value={profile.full_name} onChange={set("full_name")} />
@@ -131,12 +181,16 @@ function Dashboard() {
                 <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Society</span>
                 <select className={inputClass} value={profile.society ?? ""} onChange={set("society")}>
                   <option value="">None</option>
-                  {chapters.map((c) => (
+                  {societies.map((c) => (
                     <option key={c.slug} value={c.slug}>
                       {c.name}
                     </option>
                   ))}
                 </select>
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Enrollment No.</span>
+                <input className={inputClass} value={profile.enrollment_no ?? ""} onChange={set("enrollment_no")} />
               </label>
               {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
               <div className="flex items-center gap-3 sm:col-span-2">

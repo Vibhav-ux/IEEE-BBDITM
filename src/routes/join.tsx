@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { benefits } from "@/data/site";
+import joinHero from "@/assets/join-hero.png";
 
 export const Route = createFileRoute("/join")({
   head: () => ({
@@ -42,22 +43,43 @@ const roles = [
 function JoinPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Membership"
-        title="Join IEEE BBDITM"
-        description="Membership is open to every BBDITM student, from first year onwards. Volunteering applications stay open throughout the year."
-      />
+      {/* Hero banner with image */}
+      <section className="relative overflow-hidden min-h-[40vh] flex items-center">
+        <img
+          src={joinHero}
+          alt="Students joining hands together at BBDITM campus"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="section-shell relative z-10 py-20">
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
+            Membership
+          </span>
+          <h1 className="mt-3 max-w-2xl text-3xl font-bold text-white md:text-5xl drop-shadow-lg">
+            Join IEEE BBDITM
+          </h1>
+          <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 md:text-base">
+            Membership is open to every BBDITM student, from first year onwards. Volunteering
+            applications stay open throughout the year.
+          </p>
+        </div>
+      </section>
 
+      {/* Benefits */}
       <section className="section-shell grid gap-5 py-16 sm:grid-cols-2 lg:grid-cols-4">
         {benefits.map((b) => (
-          <div key={b.title} className="rounded-xl border border-border bg-card p-6">
-            <Check className="h-5 w-5 text-primary" />
+          <div key={b.title} className="group rounded-xl card-elevated p-6">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+              <Check className="h-5 w-5" />
+            </div>
             <h2 className="mt-4 text-base font-semibold">{b.title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{b.body}</p>
           </div>
         ))}
       </section>
 
+      {/* How to sign up + Volunteer */}
       <section className="section-shell grid gap-10 pb-20 md:grid-cols-2">
         <div className="rounded-xl border border-border bg-card p-7">
           <h2 className="text-xl font-bold">How to sign up</h2>

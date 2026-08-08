@@ -18,6 +18,8 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as NewsletterRouteImport } from './routes/newsletter'
+import { Route as OfficeBearersRouteImport } from './routes/office-bearers'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -67,6 +69,16 @@ const JoinRoute = JoinRouteImport.update({
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsletterRoute = NewsletterRouteImport.update({
+  id: '/newsletter',
+  path: '/newsletter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OfficeBearersRoute = OfficeBearersRouteImport.update({
+  id: '/office-bearers',
+  path: '/office-bearers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TeamRoute = TeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -97,6 +109,8 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRoute
   '/gallery': typeof GalleryRoute
   '/join': typeof JoinRoute
+  '/newsletter': typeof NewsletterRoute
+  '/office-bearers': typeof OfficeBearersRoute
   '/team': typeof TeamRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -111,6 +125,8 @@ export interface FileRoutesByTo {
   '/events': typeof EventsRoute
   '/gallery': typeof GalleryRoute
   '/join': typeof JoinRoute
+  '/newsletter': typeof NewsletterRoute
+  '/office-bearers': typeof OfficeBearersRoute
   '/team': typeof TeamRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -127,6 +143,8 @@ export interface FileRoutesById {
   '/events': typeof EventsRoute
   '/gallery': typeof GalleryRoute
   '/join': typeof JoinRoute
+  '/newsletter': typeof NewsletterRoute
+  '/office-bearers': typeof OfficeBearersRoute
   '/team': typeof TeamRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -143,6 +161,8 @@ export interface FileRouteTypes {
     | '/events'
     | '/gallery'
     | '/join'
+    | '/newsletter'
+    | '/office-bearers'
     | '/team'
     | '/admin'
     | '/dashboard'
@@ -157,6 +177,8 @@ export interface FileRouteTypes {
     | '/events'
     | '/gallery'
     | '/join'
+    | '/newsletter'
+    | '/office-bearers'
     | '/team'
     | '/admin'
     | '/dashboard'
@@ -172,6 +194,8 @@ export interface FileRouteTypes {
     | '/events'
     | '/gallery'
     | '/join'
+    | '/newsletter'
+    | '/office-bearers'
     | '/team'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
@@ -188,6 +212,8 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRoute
   GalleryRoute: typeof GalleryRoute
   JoinRoute: typeof JoinRoute
+  NewsletterRoute: typeof NewsletterRoute
+  OfficeBearersRoute: typeof OfficeBearersRoute
   TeamRoute: typeof TeamRoute
 }
 
@@ -256,6 +282,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/newsletter': {
+      id: '/newsletter'
+      path: '/newsletter'
+      fullPath: '/newsletter'
+      preLoaderRoute: typeof NewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/office-bearers': {
+      id: '/office-bearers'
+      path: '/office-bearers'
+      fullPath: '/office-bearers'
+      preLoaderRoute: typeof OfficeBearersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/team': {
       id: '/team'
       path: '/team'
@@ -312,8 +352,20 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRoute,
   GalleryRoute: GalleryRoute,
   JoinRoute: JoinRoute,
+  NewsletterRoute: NewsletterRoute,
+  OfficeBearersRoute: OfficeBearersRoute,
   TeamRoute: TeamRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

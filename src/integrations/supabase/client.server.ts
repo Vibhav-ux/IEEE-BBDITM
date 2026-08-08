@@ -39,8 +39,8 @@ function createSupabaseAdminClient() {
       ...(!SUPABASE_SERVICE_ROLE_KEY ? ['SUPABASE_SERVICE_ROLE_KEY'] : []),
     ];
     const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn(`[Supabase] ${message}`);
+    return null;
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -56,14 +56,36 @@ function createSupabaseAdminClient() {
 }
 
 let _supabaseAdmin: ReturnType<typeof createSupabaseAdminClient> | undefined;
+let _adminInitialized = false;
+
+// Stub for server-side when env vars are missing
+const supabaseAdminStub = {
+  auth: {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    admin: {
+      listUsers: async () => ({ data: { users: [] }, error: { message: 'Supabase not configured' } }),
+    },
+  },
+  from: () => ({
+    select: () => ({ eq: () => ({ data: [], error: null }), data: [], error: null }),
+    insert: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+    update: () => ({ eq: () => ({ data: null, error: { message: 'Supabase not configured' } }) }),
+    delete: () => ({ eq: () => ({ data: null, error: { message: 'Supabase not configured' } }) }),
+  }),
+} as unknown as ReturnType<typeof createClient<Database>>;
 
 // Server-side Supabase client with service role - bypasses RLS
 // SECURITY: Only use this for trusted server-side operations, never expose to client code
 // Load inside server handlers: const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 // Top-level import is safe only in other .server.ts modules - route files and *.functions.ts ship to the client bundle.
-export const supabaseAdmin = new Proxy({} as ReturnType<typeof createSupabaseAdminClient>, {
+export const supabaseAdmin = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(_, prop, receiver) {
-    if (!_supabaseAdmin) _supabaseAdmin = createSupabaseAdminClient();
-    return Reflect.get(_supabaseAdmin, prop, receiver);
+    if (!_adminInitialized) {
+      _supabaseAdmin = createSupabaseAdminClient();
+      _adminInitialized = true;
+    }
+    const target = _supabaseAdmin ?? supabaseAdminStub;
+    return Reflect.get(target, prop, receiver);
   },
 });
+

@@ -39,8 +39,8 @@ function createSupabaseClient() {
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
     const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn(`[Supabase] ${message}`);
+    return null;
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -56,13 +56,36 @@ function createSupabaseClient() {
 }
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
+let _initialized = false;
+
+// Stub that mimics the Supabase client shape but returns empty/no-op results.
+// This prevents crashes when env vars are missing while still allowing public pages to load.
+const supabaseStub = {
+  auth: {
+    getSession: async () => ({ data: { session: null }, error: null }),
+    onAuthStateChange: (_cb: unknown) => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    signOut: async () => ({ error: null }),
+    signInWithPassword: async () => ({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+    signUp: async () => ({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
+  },
+  from: () => ({
+    select: () => ({ eq: () => ({ data: [], error: null }), data: [], error: null }),
+    insert: () => ({ data: null, error: { message: 'Supabase not configured' } }),
+    update: () => ({ eq: () => ({ data: null, error: { message: 'Supabase not configured' } }) }),
+    delete: () => ({ eq: () => ({ data: null, error: { message: 'Supabase not configured' } }) }),
+  }),
+} as unknown as ReturnType<typeof createClient<Database>>;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
-export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>, {
+export const supabase = new Proxy({} as ReturnType<typeof createClient<Database>>, {
   get(_, prop, receiver) {
-    if (!_supabase) _supabase = createSupabaseClient();
-    return Reflect.get(_supabase, prop, receiver);
+    if (!_initialized) {
+      _supabase = createSupabaseClient();
+      _initialized = true;
+    }
+    const target = _supabase ?? supabaseStub;
+    return Reflect.get(target, prop, receiver);
   },
 });
 
