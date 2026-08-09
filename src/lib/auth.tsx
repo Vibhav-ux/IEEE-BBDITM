@@ -1,3 +1,6 @@
+// ⚠️ DEV ONLY — set to false when done testing counsellor features
+const DEV_COUNSELLOR = true;
+
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 
@@ -78,24 +81,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
-  const roleNames = roles.map((r) => r.role);
+  const roleNames = DEV_COUNSELLOR
+    ? (["counsellor"] as AppRole[])
+    : roles.map((r) => r.role);
 
   // canEdit: gallery, photos, societies (counsellor, chair, secretary, editor)
-  const canEdit = ["counsellor", "chair", "secretary", "editor"].some((r) =>
-    roleNames.includes(r as AppRole),
-  );
+  const canEdit =
+    DEV_COUNSELLOR ||
+    ["counsellor", "chair", "secretary", "editor"].some((r) =>
+      roleNames.includes(r as AppRole),
+    );
 
   // canCreateEvents: ONLY branch counsellor, chair, secretary (no society qualifier needed)
   // A chair with society='cs' cannot create events — only branch-level roles can
   const canCreateEvents =
+    DEV_COUNSELLOR ||
     roleNames.includes("counsellor") ||
     roles.some((r) => r.role === "chair" && !r.society) ||
     roles.some((r) => r.role === "secretary" && !r.society);
 
   // canManageMembers: counsellor only
-  const canManageMembers = roleNames.includes("counsellor");
+  const canManageMembers = DEV_COUNSELLOR || roleNames.includes("counsellor");
 
-  const isCounsellor = roleNames.includes("counsellor");
+  const isCounsellor = DEV_COUNSELLOR || roleNames.includes("counsellor");
 
   const value: AuthValue = {
     user: session?.user ?? null,
@@ -106,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     canViewAll: canEdit,
     canCreateEvents,
     canManageMembers,
-    isApproved,
+    isApproved: DEV_COUNSELLOR ? true : isApproved,
     isCounsellor,
     chairSocieties: roles
       .filter((r) => r.role === "society_chair" && r.society)

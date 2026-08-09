@@ -139,7 +139,16 @@ function AuthPage() {
           await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", data.user.id);
         }
         if (!data.session) {
-          setMessage("Account created. Check your email to confirm, then sign in.");
+          // Email confirmation required — try to sign in immediately anyway (dev bypass)
+          const { error: signInErr } = await supabase.auth.signInWithPassword({
+            email: form.email.trim(),
+            password: form.password,
+          });
+          if (signInErr) {
+            setMessage("Account created. Check your email to confirm, then sign in.");
+          } else {
+            navigate({ to: "/dashboard" });
+          }
         } else {
           // Signed in immediately — show pending approval notice
           setPendingApproval(true);
