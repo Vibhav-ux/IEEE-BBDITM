@@ -130,7 +130,9 @@ export const officeBearers = {
     { name: "Adity Khan", role: "Treasurer", society: "Women in Engineering" },
     { name: "Anshika Singh", role: "Webmaster", society: "Women in Engineering" },
   ],
-  emb: [],
+  emb: [
+    { name: "Vibhav Shukla", role: "Chair", society: "Engineering in Medicine & Biology Society" },
+  ],
   pels: [
     { name: "Suresh Pandey", role: "Chair", society: "Power Electronics Society" },
     { name: "Sheetal Pal", role: "Vice-Chair", society: "Power Electronics Society" },
