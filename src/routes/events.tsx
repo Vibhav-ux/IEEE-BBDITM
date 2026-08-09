@@ -63,8 +63,8 @@ function EventsPage() {
               type: e.type,
               status: e.status,
               description: e.description ?? "",
-              video_url: e.video_url ?? undefined,
-              cover_image_url: e.cover_image_url ?? undefined,
+              ...(e.video_url ? { video_url: e.video_url } : {}),
+              ...(e.cover_image_url ? { cover_image_url: e.cover_image_url } : {}),
             })),
           );
         }

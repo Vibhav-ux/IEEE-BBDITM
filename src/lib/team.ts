@@ -39,7 +39,7 @@ export async function loadTeamFromDb(): Promise<{
     .is("end_date", null)
     .order("title");
 
-  const rows = (data ?? []) as PositionRow[];
+  const rows = (data ?? []) as unknown as PositionRow[];
   if (rows.length === 0) {
     return {
       branch: officeBearers.branch.map((m) => ({

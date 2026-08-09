@@ -68,7 +68,7 @@ function ChaptersPage() {
         pos.forEach((p: any) => {
           if (p.society) {
             if (!ld[p.society]) ld[p.society] = [];
-            ld[p.society].push({ name: p.profiles.full_name, role: p.title });
+            ld[p.society]!.push({ name: p.profiles.full_name, role: p.title });
           }
         });
         setLeadership(ld);
@@ -124,11 +124,11 @@ function ChaptersPage() {
               <h2 className="text-lg font-semibold">{c.name}</h2>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground flex-1">{c.description}</p>
               
-              {leadership[c.slug] && leadership[c.slug].length > 0 && (
+              {(leadership[c.slug]?.length ?? 0) > 0 && (
                 <div className="mt-4 pt-4 border-t border-border">
                   <h3 className="text-xs font-semibold uppercase text-muted-foreground mb-2 tracking-wide">Leadership</h3>
                   <ul className="space-y-1.5">
-                    {leadership[c.slug].map((l, i) => (
+                    {(leadership[c.slug] ?? []).map((l, i) => (
                       <li key={i} className="flex justify-between items-center text-sm">
                         <span className="font-medium text-foreground">{l.name}</span>
                         <span className="text-xs text-primary">{l.role}</span>
