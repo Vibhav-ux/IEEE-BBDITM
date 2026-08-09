@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Camera } from "lucide-react";
+import { Camera, Clock } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,17 @@ export const Route = createFileRoute("/auth")({
 const inputClass =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary";
 
+const POSITIONS = [
+  "Chair",
+  "Vice-Chair",
+  "Secretary",
+  "Treasurer",
+  "Webmaster",
+  "Editor",
+  "Volunteer",
+  "Member",
+];
+
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
@@ -37,6 +48,7 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [pendingApproval, setPendingApproval] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -49,14 +61,18 @@ function AuthPage() {
     society: "",
     phone: "",
     enrollment_no: "",
+    desired_society: "",
+    desired_position: "",
   });
 
   useEffect(() => {
     if (!loading && user) navigate({ to: "/dashboard", replace: true });
   }, [loading, user, navigate]);
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
-    setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set =
+    (k: keyof typeof form) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setForm((f) => ({ ...f, [k]: e.target.value }));
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -107,6 +123,8 @@ function AuthPage() {
             society: form.society,
             phone: form.phone.trim(),
             enrollment_no: form.enrollment_no.trim(),
+            desired_society: form.desired_society,
+            desired_position: form.desired_position,
           },
         },
       });
@@ -118,11 +136,41 @@ function AuthPage() {
         if (avatarUrl) {
           await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", data.user.id);
         }
-        if (!data.session) setMessage("Account created. Check your email to confirm, then sign in.");
-        else navigate({ to: "/dashboard" });
+        if (!data.session) {
+          setMessage("Account created. Check your email to confirm, then sign in.");
+        } else {
+          // Signed in immediately — show pending approval notice
+          setPendingApproval(true);
+        }
       }
     }
     setBusy(false);
+  }
+
+  if (pendingApproval) {
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
+        <div className="max-w-md">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 border-2 border-amber-200">
+            <Clock className="h-10 w-10 text-amber-500" />
+          </div>
+          <h1 className="font-display text-2xl font-bold">You're registered!</h1>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            Your account is <strong>pending approval</strong> by the Branch Counsellor. You'll receive
+            access to the member portal once your account is approved.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Registered as <span className="font-mono font-medium">{form.email}</span>
+          </p>
+          <a
+            href="/"
+            className="mt-6 inline-block rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground"
+          >
+            Back to home
+          </a>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -130,7 +178,11 @@ function AuthPage() {
       <PageHeader
         eyebrow="Member portal"
         title={mode === "signin" ? "Sign in to your account" : "Create your member account"}
-        description="IEEE BBDITM members, society chairs and the branch counsellor use this portal to manage member records, events and the photo album."
+        description={
+          mode === "signup"
+            ? "Register to join IEEE BBDITM. Your account will be reviewed and approved by the Branch Counsellor."
+            : "IEEE BBDITM members, society chairs and the branch counsellor use this portal to manage member records, events and the photo album."
+        }
       />
 
       <section className="section-shell py-16">
@@ -197,6 +249,16 @@ function AuthPage() {
                     <input className={inputClass} value={form.year_of_study} onChange={set("year_of_study")} />
                   </Field>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="Phone">
+                    <input className={inputClass} placeholder="+91 ..." value={form.phone} onChange={set("phone")} />
+                  </Field>
+                  <Field label="Enrollment No.">
+                    <input className={inputClass} value={form.enrollment_no} onChange={set("enrollment_no")} />
+                  </Field>
+                </div>
+
+                {/* Society membership */}
                 <Field label="Society / chapter">
                   <select className={inputClass} value={form.society} onChange={set("society")}>
                     <option value="">None</option>
@@ -207,13 +269,46 @@ function AuthPage() {
                     ))}
                   </select>
                 </Field>
-                <div className="grid grid-cols-2 gap-3">
-                  <Field label="Phone">
-                    <input className={inputClass} placeholder="+91 ..." value={form.phone} onChange={set("phone")} />
-                  </Field>
-                  <Field label="Enrollment No.">
-                    <input className={inputClass} value={form.enrollment_no} onChange={set("enrollment_no")} />
-                  </Field>
+
+                {/* Desired position — used by counsellor to review and assign */}
+                <div className="rounded-lg bg-secondary/40 p-4 space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Position request (optional)
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Let the counsellor know what role you'd like to hold. You can hold positions in multiple societies.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Desired society">
+                      <select className={inputClass} value={form.desired_society} onChange={set("desired_society")}>
+                        <option value="">— Select —</option>
+                        <option value="branch">IEEE Student Branch</option>
+                        {societies.map((c) => (
+                          <option key={c.slug} value={c.slug}>
+                            {c.shortName}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Desired position">
+                      <select className={inputClass} value={form.desired_position} onChange={set("desired_position")}>
+                        <option value="">— Select —</option>
+                        {POSITIONS.map((p) => (
+                          <option key={p} value={p}>
+                            {p}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+                </div>
+
+                {/* Approval notice */}
+                <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                  <p className="text-xs leading-relaxed text-amber-700">
+                    Your account will be reviewed by the Branch Counsellor before you get access to the member portal.
+                  </p>
                 </div>
               </>
             )}

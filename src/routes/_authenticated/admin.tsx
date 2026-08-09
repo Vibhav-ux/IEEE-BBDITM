@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Trash2, Plus, Users, Calendar, Image, Video, Building2, Mail, Newspaper } from "lucide-react";
+import { Trash2, Plus, Users, Calendar, Image, Video, Building2, Mail, Newspaper, ClipboardList, Check, X, UserPlus } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,6 +76,28 @@ type NewsletterRow = {
   subscribed_at: string;
 };
 
+type PendingMemberRow = {
+  id: string;
+  full_name: string;
+  email: string | null;
+  ieee_member_id: string | null;
+  society: string | null;
+  branch: string | null;
+  year_of_study: string | null;
+  desired_position: string | null;
+  desired_society: string | null;
+  created_at: string;
+};
+
+type PositionRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  society: string | null;
+  start_date: string;
+  end_date: string | null;
+};
+
 const inputClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 const emptyEvent = {
   title: "",
@@ -91,8 +113,8 @@ const emptyEvent = {
 const LEADERSHIP_ROLES: AppRole[] = ["counsellor", "chair", "secretary", "editor", "society_chair"];
 
 function AdminPage() {
-  const { canEdit, user, chairSocieties } = useAuth();
-  const [tab, setTab] = useState<"events" | "photos" | "members" | "societies" | "messages" | "newsletter">("events");
+  const { canEdit, canCreateEvents, canManageMembers, isCounsellor, user, chairSocieties } = useAuth();
+  const [tab, setTab] = useState<"events" | "photos" | "members" | "societies" | "messages" | "newsletter" | "requests">("events");
   const [events, setEvents] = useState<EventRow[]>([]);
   const [photos, setPhotos] = useState<(Photo & { url: string })[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
@@ -106,6 +128,9 @@ function AdminPage() {
   const [editingSociety, setEditingSociety] = useState<SocietyRow | null>(null);
   const [contactMessages, setContactMessages] = useState<ContactMessageRow[]>([]);
   const [newsletterSubs, setNewsletterSubs] = useState<NewsletterRow[]>([]);
+  const [pendingMembers, setPendingMembers] = useState<PendingMemberRow[]>([]);
+  const [allPositions, setAllPositions] = useState<PositionRow[]>([]);
+  const [positionDraft, setPositionDraft] = useState<{ userId: string; title: string; society: string; startDate: string }>({ userId: "", title: "", society: "", startDate: new Date().toISOString().slice(0, 10) });
   const [form, setForm] = useState(emptyEvent);
   const [photoMeta, setPhotoMeta] = useState({ title: "", album: "General", caption: "" });
   const [file, setFile] = useState<File | null>(null);
@@ -132,6 +157,20 @@ function AdminPage() {
     setContactMessages((msgs ?? []) as ContactMessageRow[]);
     const { data: subs } = await supabase.from("newsletter_subscribers").select("*").order("subscribed_at", { ascending: false });
     setNewsletterSubs((subs ?? []) as NewsletterRow[]);
+    // Pending members for counsellor
+    const { data: pending } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, ieee_member_id, society, branch, year_of_study, desired_position, desired_society, created_at")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false });
+    setPendingMembers((pending ?? []) as PendingMemberRow[]);
+    // All positions for position management
+    const { data: positions } = await supabase
+      .from("positions")
+      .select("id, user_id, title, society, start_date, end_date")
+      .is("end_date", null)
+      .order("title");
+    setAllPositions((positions ?? []) as PositionRow[]);
   }
 
   useEffect(() => {
@@ -275,6 +314,55 @@ function AdminPage() {
     void load();
   }
 
+  async function approveMember(id: string, desiredPosition?: string | null, desiredSociety?: string | null) {
+    setBusy(true);
+    setError(null);
+    const { error: err } = await supabase.from("profiles").update({ status: "approved" }).eq("id", id);
+    if (err) { setBusy(false); return setError(err.message); }
+    // If they requested a position, create it
+    if (desiredPosition && desiredPosition !== "") {
+      await supabase.from("positions").insert({
+        user_id: id,
+        title: desiredPosition,
+        society: desiredSociety || null,
+        start_date: new Date().toISOString().slice(0, 10),
+      });
+    }
+    setBusy(false);
+    void load();
+  }
+
+  async function rejectMember(id: string) {
+    if (!confirm("Reject this registration request?")) return;
+    const { error: err } = await supabase.from("profiles").update({ status: "rejected" }).eq("id", id);
+    if (err) return setError(err.message);
+    void load();
+  }
+
+  async function addPosition(e: React.FormEvent) {
+    e.preventDefault();
+    if (!positionDraft.userId || !positionDraft.title) return;
+    setBusy(true);
+    setError(null);
+    const { error: err } = await supabase.from("positions").insert({
+      user_id: positionDraft.userId,
+      title: positionDraft.title,
+      society: positionDraft.society || null,
+      start_date: positionDraft.startDate,
+    });
+    setBusy(false);
+    if (err) return setError(err.message);
+    setPositionDraft({ userId: "", title: "", society: "", startDate: new Date().toISOString().slice(0, 10) });
+    void load();
+  }
+
+  async function removePosition(id: string) {
+    if (!confirm("Remove this position?")) return;
+    const { error: err } = await supabase.from("positions").delete().eq("id", id);
+    if (err) return setError(err.message);
+    void load();
+  }
+
   const tabs = [
     { key: "events" as const, label: "Events", icon: Calendar },
     { key: "photos" as const, label: "Photos", icon: Image },
@@ -282,6 +370,7 @@ function AdminPage() {
     { key: "societies" as const, label: "Societies", icon: Building2 },
     { key: "messages" as const, label: "Messages", icon: Mail },
     { key: "newsletter" as const, label: "Newsletter", icon: Newspaper },
+    ...(isCounsellor ? [{ key: "requests" as const, label: `Requests${pendingMembers.length > 0 ? ` (${pendingMembers.length})` : ""}`, icon: ClipboardList }] : []),
   ];
 
   return (
@@ -317,7 +406,8 @@ function AdminPage() {
         {/* ─── Events Tab ─── */}
         {tab === "events" && (
           <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
-            <form onSubmit={createEvent} className="space-y-3 rounded-xl border border-border bg-card p-6">
+            {canCreateEvents ? (
+              <form onSubmit={createEvent} className="space-y-3 rounded-xl border border-border bg-card p-6">
               <h2 className="flex items-center gap-2 text-lg font-semibold">
                 <Plus className="h-4 w-4 text-primary" /> New event
               </h2>
@@ -364,7 +454,16 @@ function AdminPage() {
                 className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
                 {busy ? "Creating…" : "Create event"}
               </button>
-            </form>
+              </form>
+            ) : (
+              <div className="rounded-xl border border-border bg-card p-6 flex flex-col items-center justify-center gap-3 text-center">
+                <Calendar className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm font-semibold">View-only</p>
+                <p className="text-xs text-muted-foreground max-w-xs">
+                  Only the Branch Counsellor, Chair and Secretary can create events.
+                </p>
+              </div>
+            )}
 
             <div className="rounded-xl border border-border bg-card p-6">
               <h2 className="text-lg font-semibold">All events</h2>
@@ -383,10 +482,12 @@ function AdminPage() {
                           <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{ev.description}</p>
                         )}
                       </div>
-                      <button onClick={() => deleteEvent(ev.id)}
-                        className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                      {canCreateEvents && (
+                        <button onClick={() => deleteEvent(ev.id)}
+                          className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -688,6 +789,139 @@ function AdminPage() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ─── Requests Tab (counsellor only) ─── */}
+        {tab === "requests" && isCounsellor && (
+          <div className="space-y-6">
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="text-lg font-semibold mb-1">Registration Requests</h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Approve members to grant portal access. Their desired position is auto-assigned on approval.
+              </p>
+              {pendingMembers.length === 0 ? (
+                <div className="flex flex-col items-center gap-2 py-10 text-center">
+                  <Check className="h-8 w-8 text-green-500" />
+                  <p className="text-sm font-semibold">All clear — no pending requests.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingMembers.map((m) => (
+                    <article key={m.id} className="rounded-xl border border-border p-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1.5">
+                          <p className="font-semibold">{m.full_name}</p>
+                          <p className="text-xs text-muted-foreground">{m.email}</p>
+                          <div className="flex flex-wrap gap-1.5 text-xs">
+                            {m.ieee_member_id && (
+                              <span className="rounded-full bg-secondary px-2 py-0.5 font-mono">IEEE {m.ieee_member_id}</span>
+                            )}
+                            {m.branch && <span className="rounded-full bg-secondary px-2 py-0.5">{m.branch}</span>}
+                            {m.year_of_study && <span className="rounded-full bg-secondary px-2 py-0.5">Year {m.year_of_study}</span>}
+                            {m.society && (
+                              <span className="rounded-full bg-primary/10 text-primary px-2 py-0.5">
+                                {societies.find((s) => s.slug === m.society)?.shortName ?? m.society}
+                              </span>
+                            )}
+                          </div>
+                          {(m.desired_position || m.desired_society) && (
+                            <p className="text-xs text-muted-foreground">
+                              Requested position:{" "}
+                              <span className="font-medium text-foreground">
+                                {m.desired_position}
+                                {m.desired_society
+                                  ? ` · ${societies.find((s) => s.slug === m.desired_society)?.shortName ?? m.desired_society}`
+                                  : " (Branch)"}
+                              </span>
+                            </p>
+                          )}
+                          <p className="text-[10px] text-muted-foreground">
+                            Registered {new Date(m.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            disabled={busy}
+                            onClick={() => approveMember(m.id, m.desired_position, m.desired_society)}
+                            className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-60 transition-colors"
+                          >
+                            <Check className="h-3.5 w-3.5" /> Approve
+                          </button>
+                          <button
+                            onClick={() => rejectMember(m.id)}
+                            className="flex items-center gap-1.5 rounded-lg border border-destructive/30 px-4 py-2 text-xs font-semibold text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            <X className="h-3.5 w-3.5" /> Reject
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Assign / remove positions */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
+                <UserPlus className="h-4 w-4 text-primary" /> Assign Position
+              </h2>
+              <form onSubmit={addPosition} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <select
+                  required
+                  className={inputClass}
+                  value={positionDraft.userId}
+                  onChange={(e) => setPositionDraft((d) => ({ ...d, userId: e.target.value }))}
+                >
+                  <option value="">Select member…</option>
+                  {members.filter((m) => m.full_name).map((m) => (
+                    <option key={m.id} value={m.id}>{m.full_name}</option>
+                  ))}
+                </select>
+                <input
+                  required
+                  className={inputClass}
+                  placeholder="Title e.g. Chair, Secretary"
+                  value={positionDraft.title}
+                  onChange={(e) => setPositionDraft((d) => ({ ...d, title: e.target.value }))}
+                />
+                <select
+                  className={inputClass}
+                  value={positionDraft.society}
+                  onChange={(e) => setPositionDraft((d) => ({ ...d, society: e.target.value }))}
+                >
+                  <option value="">Branch (no society)</option>
+                  {societies.map((s) => (
+                    <option key={s.slug} value={s.slug}>{s.shortName}</option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  disabled={busy}
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                >
+                  {busy ? "Saving…" : "Assign"}
+                </button>
+              </form>
+              {allPositions.length > 0 && (
+                <div className="mt-4 max-h-56 overflow-y-auto space-y-1">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Active positions</p>
+                  {allPositions.map((p) => {
+                    const member = members.find((mem) => mem.id === p.user_id);
+                    return (
+                      <div key={p.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm">
+                        <span className="font-medium">{member?.full_name ?? "Unknown"}</span>
+                        <span className="text-muted-foreground">{p.title}{p.society ? ` · ${p.society.toUpperCase()}` : ""}</span>
+                        <button onClick={() => removePosition(p.id)} className="rounded p-1 text-muted-foreground hover:text-destructive transition-colors">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>

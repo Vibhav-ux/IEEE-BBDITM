@@ -178,6 +178,8 @@ export type Database = {
           avatar_url: string | null
           branch: string | null
           created_at: string
+          desired_position: string | null
+          desired_society: string | null
           email: string | null
           enrollment_no: string | null
           full_name: string
@@ -185,6 +187,7 @@ export type Database = {
           ieee_member_id: string | null
           phone: string | null
           society: string | null
+          status: "pending" | "approved" | "rejected"
           updated_at: string
           year_of_study: string | null
         }
@@ -192,6 +195,8 @@ export type Database = {
           avatar_url?: string | null
           branch?: string | null
           created_at?: string
+          desired_position?: string | null
+          desired_society?: string | null
           email?: string | null
           enrollment_no?: string | null
           full_name?: string
@@ -199,6 +204,7 @@ export type Database = {
           ieee_member_id?: string | null
           phone?: string | null
           society?: string | null
+          status?: "pending" | "approved" | "rejected"
           updated_at?: string
           year_of_study?: string | null
         }
@@ -206,6 +212,8 @@ export type Database = {
           avatar_url?: string | null
           branch?: string | null
           created_at?: string
+          desired_position?: string | null
+          desired_society?: string | null
           email?: string | null
           enrollment_no?: string | null
           full_name?: string
@@ -213,6 +221,7 @@ export type Database = {
           ieee_member_id?: string | null
           phone?: string | null
           society?: string | null
+          status?: "pending" | "approved" | "rejected"
           updated_at?: string
           year_of_study?: string | null
         }
