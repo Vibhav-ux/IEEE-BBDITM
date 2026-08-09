@@ -28,9 +28,22 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/90 backdrop-blur-xl">
       <div className="section-shell flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary font-display text-sm font-bold text-primary-foreground">
-            IE
+        <Link to="/" className="flex items-center gap-2.5 group">
+          {/* BBDITM college logo with live pulse ring */}
+          <span className="relative flex h-10 w-10 shrink-0 items-center justify-center">
+            {/* Animated pulse ring */}
+            <span
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "oklch(0.52 0.17 255 / 0.18)",
+                animation: "orb3 3s ease-in-out infinite",
+              }}
+            />
+            <img
+              src="/bbditm-logo.jpg"
+              alt="BBDITM Logo"
+              className="relative h-9 w-9 rounded-full object-cover ring-2 ring-primary/30 transition-all group-hover:ring-primary/60 group-hover:scale-105"
+            />
           </span>
           <span className="font-display text-base font-semibold tracking-tight">
             IEEE BBDITM

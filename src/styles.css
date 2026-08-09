@@ -54,47 +54,47 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* ── Soothing professional light tokens ───────────────────── */
+/* ── Deep Navy + Crisp White ───────────────────────────────── */
 :root {
   --radius: 0.625rem;
-  /* Warm off-white */
-  --background: oklch(0.985 0.002 250);
-  --foreground: oklch(0.18 0.025 255);
-  /* Pure white cards */
+  /* Pure crisp white background */
+  --background: oklch(0.99 0.001 250);
+  --foreground: oklch(0.14 0.030 258);
+  /* Pure white cards with a hair of depth */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.025 255);
+  --card-foreground: oklch(0.14 0.030 258);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.025 255);
-  /* Refined IEEE blue — trustworthy, not neon */
-  --primary: oklch(0.52 0.17 255);
+  --popover-foreground: oklch(0.14 0.030 258);
+  /* Deep authoritative navy — IEEE / MIT caliber */
+  --primary: oklch(0.40 0.22 258);
   --primary-foreground: oklch(0.99 0.002 250);
-  --primary-soft: oklch(0.95 0.025 252);
-  --ink: oklch(0.22 0.035 255);
-  /* Soft cool-grey secondary */
-  --secondary: oklch(0.965 0.006 250);
-  --secondary-foreground: oklch(0.25 0.03 255);
-  --muted: oklch(0.96 0.006 250);
-  --muted-foreground: oklch(0.5 0.02 255);
-  --accent: oklch(0.95 0.025 252);
-  --accent-foreground: oklch(0.38 0.14 255);
+  --primary-soft: oklch(0.94 0.030 254);
+  --ink: oklch(0.18 0.038 258);
+  /* Cool silver-white secondary */
+  --secondary: oklch(0.965 0.006 252);
+  --secondary-foreground: oklch(0.22 0.035 258);
+  --muted: oklch(0.960 0.006 252);
+  --muted-foreground: oklch(0.48 0.022 258);
+  --accent: oklch(0.945 0.030 254);
+  --accent-foreground: oklch(0.36 0.18 258);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.92 0.008 250);
-  --input: oklch(0.92 0.008 250);
-  --ring: oklch(0.52 0.17 255);
-  --chart-1: oklch(0.52 0.17 255);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0.002 250);
-  --sidebar-foreground: oklch(0.18 0.025 255);
-  --sidebar-primary: oklch(0.52 0.17 255);
+  --border: oklch(0.91 0.009 252);
+  --input: oklch(0.91 0.009 252);
+  --ring: oklch(0.40 0.22 258);
+  --chart-1: oklch(0.40 0.22 258);
+  --chart-2: oklch(0.58 0.14 184);
+  --chart-3: oklch(0.38 0.08 228);
+  --chart-4: oklch(0.82 0.18 84);
+  --chart-5: oklch(0.76 0.18 70);
+  --sidebar: oklch(0.99 0.001 250);
+  --sidebar-foreground: oklch(0.14 0.030 258);
+  --sidebar-primary: oklch(0.40 0.22 258);
   --sidebar-primary-foreground: oklch(0.99 0.002 250);
-  --sidebar-accent: oklch(0.96 0.01 250);
-  --sidebar-accent-foreground: oklch(0.18 0.025 255);
-  --sidebar-border: oklch(0.92 0.008 250);
-  --sidebar-ring: oklch(0.52 0.17 255);
+  --sidebar-accent: oklch(0.955 0.012 252);
+  --sidebar-accent-foreground: oklch(0.14 0.030 258);
+  --sidebar-border: oklch(0.91 0.009 252);
+  --sidebar-ring: oklch(0.40 0.22 258);
 }
 
 @theme inline {
@@ -192,16 +192,11 @@
   }
 }
 
-/* ── IEEE Blue Breeze — body breathing ─────────────────── */
-/* Slowly pulses between warm off-white and soft sky-blue tint */
+/* ── Live breathing background — base colour pulse ──────── */
+/* Barely-there breathe — atmospheric, never overpowers content */
 @keyframes blue-breathe {
-  0%,
-  100% {
-    background-color: oklch(0.985 0.002 250);
-  }
-  50% {
-    background-color: oklch(0.96 0.022 248);
-  }
+  0%, 100% { background-color: oklch(0.99 0.001 250); }
+  50%       { background-color: oklch(0.970 0.018 252); }
 }
 
 /* Deeper breathing for alternating sections */
@@ -224,10 +219,12 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    animation: blue-breathe 12s ease-in-out infinite;
+    animation: blue-breathe 14s ease-in-out infinite;
+    position: relative;
+    overflow-x: hidden;
   }
 
-  /* Ultra-subtle diagonal crosshatch — like premium paper texture */
+  /* ── Ultra-subtle diagonal crosshatch — premium paper texture ── */
   body::after {
     content: "";
     position: fixed;
@@ -238,21 +235,21 @@
     background-image:
       repeating-linear-gradient(
         45deg,
-        oklch(0.52 0.17 255 / 0.018) 0px,
-        oklch(0.52 0.17 255 / 0.018) 1px,
+        oklch(0.52 0.17 255 / 0.015) 0px,
+        oklch(0.52 0.17 255 / 0.015) 1px,
         transparent 1px,
         transparent 28px
       ),
       repeating-linear-gradient(
         -45deg,
-        oklch(0.52 0.17 255 / 0.018) 0px,
-        oklch(0.52 0.17 255 / 0.018) 1px,
+        oklch(0.52 0.17 255 / 0.015) 0px,
+        oklch(0.52 0.17 255 / 0.015) 1px,
         transparent 1px,
         transparent 28px
       );
   }
 
-  /* Ensure content sits above the pattern */
+  /* Ensure content sits above the animated layers */
   body > * {
     position: relative;
     z-index: 1;
@@ -274,51 +271,51 @@
   padding-inline: 1.5rem;
 }
 
-/* ── Refined primary button with soft gradient ─── */
+/* ── Refined primary button — deep navy gradient ─────────── */
 @utility btn-primary {
   background: linear-gradient(
     135deg,
-    oklch(0.48 0.17 255),
-    oklch(0.52 0.17 255),
-    oklch(0.56 0.16 258)
+    oklch(0.36 0.24 260),
+    oklch(0.40 0.22 258),
+    oklch(0.44 0.20 255)
   );
   background-size: 200% 200%;
   animation: gradient-drift 6s ease infinite;
   box-shadow:
-    0 2px 8px oklch(0.52 0.17 255 / 0.2),
-    0 1px 3px oklch(0 0 0 / 0.06);
+    0 2px 8px oklch(0.40 0.22 258 / 0.25),
+    0 1px 3px oklch(0 0 0 / 0.08);
   transition: all 0.3s ease;
   &:hover {
     box-shadow:
-      0 4px 16px oklch(0.52 0.17 255 / 0.3),
-      0 2px 6px oklch(0 0 0 / 0.08);
+      0 4px 20px oklch(0.40 0.22 258 / 0.35),
+      0 2px 6px oklch(0 0 0 / 0.10);
     transform: translateY(-1px);
   }
 }
 
-/* ── Elevated card with soft shadow on hover ─── */
+/* ── Elevated card with soft shadow on hover ─────────── */
 @utility card-elevated {
   background: oklch(1 0 0);
-  border: 1px solid oklch(0.92 0.008 250);
+  border: 1px solid oklch(0.91 0.009 252);
   box-shadow: 0 1px 3px oklch(0 0 0 / 0.04);
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
-    border-color: oklch(0.52 0.17 255 / 0.25);
+    border-color: oklch(0.40 0.22 258 / 0.22);
     box-shadow:
-      0 8px 30px oklch(0.52 0.17 255 / 0.08),
-      0 2px 8px oklch(0 0 0 / 0.04);
+      0 8px 30px oklch(0.40 0.22 258 / 0.10),
+      0 2px 8px oklch(0 0 0 / 0.05);
     transform: translateY(-3px);
   }
 }
 
-/* ── Gentle shimmer text for headings ─── */
+/* ── Gentle shimmer text for headings ─────────────── */
 @utility text-shimmer {
   background: linear-gradient(
     110deg,
-    oklch(0.18 0.025 255) 0%,
-    oklch(0.52 0.17 255) 40%,
-    oklch(0.58 0.14 258) 60%,
-    oklch(0.18 0.025 255) 100%
+    oklch(0.14 0.030 258) 0%,
+    oklch(0.40 0.22 258) 40%,
+    oklch(0.50 0.18 255) 60%,
+    oklch(0.14 0.030 258) 100%
   );
   background-size: 300% 100%;
   animation: gentle-shimmer 5s ease-in-out infinite;

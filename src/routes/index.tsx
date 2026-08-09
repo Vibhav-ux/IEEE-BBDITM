@@ -77,10 +77,31 @@ function Index() {
         />
 
         <div className="section-shell relative z-10 py-24 md:py-32">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" />
-            IEEE UP Section · Region 10
-          </span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5" />
+              IEEE UP Section · Region 10
+            </span>
+            {/* BBDITM logo live badge */}
+            <span className="relative inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 backdrop-blur-sm">
+              <span className="relative flex h-7 w-7 shrink-0">
+                {/* Breathing glow ring */}
+                <span
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: "radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%)",
+                    animation: "orb3 3s ease-in-out infinite",
+                  }}
+                />
+                <img
+                  src="/bbditm-logo.jpg"
+                  alt="BBDITM"
+                  className="relative h-7 w-7 rounded-full object-cover ring-1 ring-white/50"
+                />
+              </span>
+              <span className="text-xs font-semibold text-white">BBDITM, Lucknow</span>
+            </span>
+          </div>
           <h1 className="mt-6 max-w-3xl text-4xl font-bold leading-[1.05] text-white md:text-6xl drop-shadow-lg">
             IEEE BBDITM
           </h1>

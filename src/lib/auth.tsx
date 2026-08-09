@@ -1,5 +1,28 @@
 // ⚠️ DEV ONLY — set to false when done testing counsellor features
-const DEV_COUNSELLOR = true;
+const DEV_COUNSELLOR = false;
+
+// Hardcoded admin credentials (local, no Supabase needed)
+const ADMIN_USERNAME = "ieeeBBDITM";
+const ADMIN_PASSWORD = "ieeeBBDITM@2025";
+const LOCAL_ADMIN_KEY = "ieee_admin_local";
+
+export function checkAdminCredentials(username: string, password: string) {
+  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+}
+
+export function setLocalAdmin(value: boolean) {
+  if (typeof window === "undefined") return;
+  if (value) {
+    localStorage.setItem(LOCAL_ADMIN_KEY, "1");
+  } else {
+    localStorage.removeItem(LOCAL_ADMIN_KEY);
+  }
+}
+
+export function isLocalAdminActive() {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(LOCAL_ADMIN_KEY) === "1";
+}
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
@@ -36,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<RoleRow[]>([]);
   const [isApproved, setIsApproved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [localAdmin, setLocalAdminState] = useState<boolean>(() => isLocalAdminActive());
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -50,6 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
     return () => sub.subscription.unsubscribe();
+  }, []);
+
+  // Listen for local admin state changes (dispatched from login form)
+  useEffect(() => {
+    const handler = () => setLocalAdminState(isLocalAdminActive());
+    window.addEventListener("ieee-admin-change", handler);
+    return () => window.removeEventListener("ieee-admin-change", handler);
   }, []);
 
   const userId = session?.user.id;
@@ -81,13 +112,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
-  const roleNames = DEV_COUNSELLOR
+  const isAdminSession = DEV_COUNSELLOR || localAdmin;
+
+  const roleNames = isAdminSession
     ? (["counsellor"] as AppRole[])
     : roles.map((r) => r.role);
 
   // canEdit: gallery, photos, societies (counsellor, chair, secretary, editor)
   const canEdit =
-    DEV_COUNSELLOR ||
+    isAdminSession ||
     ["counsellor", "chair", "secretary", "editor"].some((r) =>
       roleNames.includes(r as AppRole),
     );
@@ -95,31 +128,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // canCreateEvents: ONLY branch counsellor, chair, secretary (no society qualifier needed)
   // A chair with society='cs' cannot create events — only branch-level roles can
   const canCreateEvents =
-    DEV_COUNSELLOR ||
+    isAdminSession ||
     roleNames.includes("counsellor") ||
     roles.some((r) => r.role === "chair" && !r.society) ||
     roles.some((r) => r.role === "secretary" && !r.society);
 
   // canManageMembers: counsellor only
-  const canManageMembers = DEV_COUNSELLOR || roleNames.includes("counsellor");
+  const canManageMembers = isAdminSession || roleNames.includes("counsellor");
 
-  const isCounsellor = DEV_COUNSELLOR || roleNames.includes("counsellor");
+  const isCounsellor = isAdminSession || roleNames.includes("counsellor");
 
   const value: AuthValue = {
-    user: session?.user ?? null,
-    session,
+    user: localAdmin
+      ? ({ id: "local-admin", email: "ieeeBBDITM" } as unknown as User)
+      : (session?.user ?? null),
+    session: localAdmin ? ({} as unknown as Session) : session,
     roles,
-    loading,
+    loading: localAdmin ? false : loading,
     canEdit,
     canViewAll: canEdit,
     canCreateEvents,
     canManageMembers,
-    isApproved: DEV_COUNSELLOR ? true : isApproved,
+    isApproved: isAdminSession ? true : isApproved,
     isCounsellor,
     chairSocieties: roles
       .filter((r) => r.role === "society_chair" && r.society)
       .map((r) => r.society!),
     signOut: async () => {
+      if (localAdmin) {
+        setLocalAdmin(false);
+        setLocalAdminState(false);
+        window.dispatchEvent(new Event("ieee-admin-change"));
+        return;
+      }
       await supabase.auth.signOut();
     },
   };

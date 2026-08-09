@@ -4,7 +4,7 @@ import { Camera, Clock, Eye, EyeOff } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth, checkAdminCredentials, setLocalAdmin } from "@/lib/auth";
 import { societies } from "@/data/site";
 
 export const Route = createFileRoute("/auth")({
@@ -105,6 +105,14 @@ function AuthPage() {
     setMessage(null);
 
     if (mode === "signin") {
+      // Check hardcoded admin credentials first (no Supabase needed)
+      if (checkAdminCredentials(form.email.trim(), form.password)) {
+        setLocalAdmin(true);
+        window.dispatchEvent(new Event("ieee-admin-change"));
+        navigate({ to: "/dashboard" });
+        setBusy(false);
+        return;
+      }
       const { error: err } = await supabase.auth.signInWithPassword({
         email: form.email.trim(),
         password: form.password,
@@ -362,13 +370,14 @@ function AuthPage() {
               </>
             )}
 
-            <Field label="Email">
+            <Field label={mode === "signin" ? "Email / Username" : "Email"}>
               <input
                 required
-                type="email"
+                type={mode === "signin" ? "text" : "email"}
                 className={inputClass}
                 value={form.email}
                 onChange={set("email")}
+                placeholder={mode === "signin" ? "your@email.com or username" : ""}
               />
             </Field>
             <Field label="Password">

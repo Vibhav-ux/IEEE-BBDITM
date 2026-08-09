@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SiteHeader } from "../components/site/SiteHeader";
 import { SiteFooter } from "../components/site/SiteFooter";
 import { AuthProvider } from "../lib/auth";
+import { LiveBackground } from "../components/site/LiveBackground";
 
 function NotFoundComponent() {
   return (
@@ -137,6 +138,8 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <div className="flex min-h-screen flex-col">
+          {/* Live breathing orb background — renders on every page */}
+          <LiveBackground />
           <SiteHeader />
           <main className="flex-1">
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
