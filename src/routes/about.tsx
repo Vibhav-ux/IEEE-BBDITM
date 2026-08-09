@@ -57,11 +57,7 @@ function AboutPage() {
       {/* Campus image strip */}
       <section className="section-shell -mt-8 mb-10">
         <div className="overflow-hidden rounded-2xl shadow-xl">
-          <img
-            src={campusImage}
-            alt="BBDITM Campus"
-            className="h-64 w-full object-cover md:h-80"
-          />
+          <img src={campusImage} alt="BBDITM Campus" className="h-64 w-full object-cover md:h-80" />
         </div>
       </section>
 
@@ -84,8 +80,8 @@ function AboutPage() {
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               We run technical workshops, hackathons, industry talks and humanitarian technology
               projects across the academic year. Members get access to the global IEEE network,
-              conference opportunities, the IEEE Xplore digital library and a route into
-              leadership roles inside the branch.
+              conference opportunities, the IEEE Xplore digital library and a route into leadership
+              roles inside the branch.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               Our flagship event, Unstoppable Journey, brings together speakers, competitions and

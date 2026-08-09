@@ -51,7 +51,16 @@ type SocietyMember = {
 
 type AddMemberDraft = { societySlug: string; userId: string; title: string };
 
-const POSITION_TITLES = ["Chair", "Vice-Chair", "Secretary", "Treasurer", "Webmaster", "Editor", "Volunteer", "Member"];
+const POSITION_TITLES = [
+  "Chair",
+  "Vice-Chair",
+  "Secretary",
+  "Treasurer",
+  "Webmaster",
+  "Editor",
+  "Volunteer",
+  "Member",
+];
 
 function ChaptersPage() {
   const { canManageMembers } = useAuth();
@@ -60,7 +69,11 @@ function ChaptersPage() {
   const [members, setMembers] = useState<Record<string, SocietyMember[]>>({});
   // All approved profiles (for counsellor "add" dropdown)
   const [allProfiles, setAllProfiles] = useState<{ id: string; full_name: string }[]>([]);
-  const [addDraft, setAddDraft] = useState<AddMemberDraft>({ societySlug: "", userId: "", title: "Member" });
+  const [addDraft, setAddDraft] = useState<AddMemberDraft>({
+    societySlug: "",
+    userId: "",
+    title: "Member",
+  });
   const [expandedSociety, setExpandedSociety] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -116,7 +129,9 @@ function ChaptersPage() {
     }
   }
 
-  useEffect(() => { void load(); }, [canManageMembers]);
+  useEffect(() => {
+    void load();
+  }, [canManageMembers]);
 
   async function addMember(e: React.FormEvent) {
     e.preventDefault();
@@ -130,7 +145,10 @@ function ChaptersPage() {
       start_date: new Date().toISOString().slice(0, 10),
     });
     setBusy(false);
-    if (error) { setErr(error.message); return; }
+    if (error) {
+      setErr(error.message);
+      return;
+    }
     setAddDraft((d) => ({ ...d, userId: "", title: "Member" }));
     void load();
   }
@@ -138,12 +156,20 @@ function ChaptersPage() {
   async function removeMember(positionId: string) {
     if (!confirm("Remove this member from the society?")) return;
     const { error } = await supabase.from("positions").delete().eq("id", positionId);
-    if (error) { setErr(error.message); return; }
+    if (error) {
+      setErr(error.message);
+      return;
+    }
     void load();
   }
 
   function initials(name: string) {
-    return name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+    return name
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
   }
 
   return (
@@ -155,15 +181,18 @@ function ChaptersPage() {
           alt="IEEE BBDITM chapter members in a tech lab"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
         <div className="section-shell relative z-10 py-20">
-          <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">Societies</span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
+            Societies
+          </span>
           <h1 className="mt-3 max-w-2xl text-3xl font-bold text-white md:text-5xl drop-shadow-lg">
             Find the society that fits your field
           </h1>
           <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 md:text-base">
-            Each chapter runs its own events, projects and mentorship. Members can join more than one.
+            Each chapter runs its own events, projects and mentorship. Members can join more than
+            one.
           </p>
         </div>
       </section>
@@ -191,12 +220,15 @@ function ChaptersPage() {
               {/* Image */}
               <div className="relative h-44 overflow-hidden shrink-0">
                 <img
-                  src={chapterImages[c.slug] || "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=400&fit=crop"}
+                  src={
+                    chapterImages[c.slug] ||
+                    "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=400&fit=crop"
+                  }
                   alt={c.name}
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                 <span
                   className="absolute bottom-3 left-4 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white backdrop-blur-sm"
                   style={{ backgroundColor: c.color ? `${c.color}dd` : "rgba(255,255,255,0.15)" }}
@@ -214,7 +246,9 @@ function ChaptersPage() {
               <div className="p-6 flex-1 flex flex-col gap-4">
                 <div>
                   <h2 className="text-lg font-semibold">{c.name}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{c.description}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {c.description}
+                  </p>
                 </div>
 
                 {/* Leadership strip */}
@@ -228,7 +262,11 @@ function ChaptersPage() {
                         <li key={i} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">
                             {l.avatarUrl ? (
-                              <img src={l.avatarUrl} alt="" className="h-6 w-6 rounded-full object-cover" />
+                              <img
+                                src={l.avatarUrl}
+                                alt=""
+                                className="h-6 w-6 rounded-full object-cover"
+                              />
                             ) : (
                               <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[9px] font-bold text-primary">
                                 {initials(l.name)}
@@ -252,16 +290,27 @@ function ChaptersPage() {
                       className="flex w-full items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <span>All members ({societyMembers.length})</span>
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
                     </button>
 
                     {isExpanded && (
                       <ul className="mt-3 space-y-2">
                         {societyMembers.map((m) => (
-                          <li key={m.positionId} className="flex items-center justify-between gap-2 rounded-lg bg-secondary/40 px-3 py-2">
+                          <li
+                            key={m.positionId}
+                            className="flex items-center justify-between gap-2 rounded-lg bg-secondary/40 px-3 py-2"
+                          >
                             <div className="flex items-center gap-2">
                               {m.avatarUrl ? (
-                                <img src={m.avatarUrl} alt="" className="h-7 w-7 rounded-full object-cover" />
+                                <img
+                                  src={m.avatarUrl}
+                                  alt=""
+                                  className="h-7 w-7 rounded-full object-cover"
+                                />
                               ) : (
                                 <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
                                   {initials(m.name)}
@@ -270,7 +319,9 @@ function ChaptersPage() {
                               <div>
                                 <p className="text-sm font-medium">{m.name}</p>
                                 {m.ieeeId && (
-                                  <p className="text-[10px] font-mono text-muted-foreground">IEEE {m.ieeeId}</p>
+                                  <p className="text-[10px] font-mono text-muted-foreground">
+                                    IEEE {m.ieeeId}
+                                  </p>
                                 )}
                               </div>
                             </div>
@@ -296,7 +347,10 @@ function ChaptersPage() {
                 {/* Add member form — counsellor only */}
                 {canManageMembers && (
                   <form
-                    onSubmit={(e) => { setAddDraft((d) => ({ ...d, societySlug: c.slug })); addMember(e); }}
+                    onSubmit={(e) => {
+                      setAddDraft((d) => ({ ...d, societySlug: c.slug }));
+                      addMember(e);
+                    }}
                     onClick={() => setAddDraft((d) => ({ ...d, societySlug: c.slug }))}
                     className="mt-auto pt-3 border-t border-border space-y-2"
                   >
@@ -307,21 +361,33 @@ function ChaptersPage() {
                       required
                       className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
                       value={addDraft.societySlug === c.slug ? addDraft.userId : ""}
-                      onChange={(e) => setAddDraft({ societySlug: c.slug, userId: e.target.value, title: addDraft.societySlug === c.slug ? addDraft.title : "Member" })}
+                      onChange={(e) =>
+                        setAddDraft({
+                          societySlug: c.slug,
+                          userId: e.target.value,
+                          title: addDraft.societySlug === c.slug ? addDraft.title : "Member",
+                        })
+                      }
                     >
                       <option value="">Select member…</option>
                       {allProfiles.map((p) => (
-                        <option key={p.id} value={p.id}>{p.full_name}</option>
+                        <option key={p.id} value={p.id}>
+                          {p.full_name}
+                        </option>
                       ))}
                     </select>
                     <div className="flex gap-2">
                       <select
                         className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs"
                         value={addDraft.societySlug === c.slug ? addDraft.title : "Member"}
-                        onChange={(e) => setAddDraft((d) => ({ ...d, societySlug: c.slug, title: e.target.value }))}
+                        onChange={(e) =>
+                          setAddDraft((d) => ({ ...d, societySlug: c.slug, title: e.target.value }))
+                        }
                       >
                         {POSITION_TITLES.map((t) => (
-                          <option key={t} value={t}>{t}</option>
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
                         ))}
                       </select>
                       <button

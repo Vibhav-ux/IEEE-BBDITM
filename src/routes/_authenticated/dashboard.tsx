@@ -11,7 +11,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "My Dashboard — IEEE BBDITM" },
-      { name: "description", content: "Manage your IEEE BBDITM member profile and positions held." },
+      {
+        name: "description",
+        content: "Manage your IEEE BBDITM member profile and positions held.",
+      },
       { property: "og:title", content: "My Dashboard — IEEE BBDITM" },
       { property: "og:description", content: "Your IEEE BBDITM member profile and positions." },
     ],
@@ -115,7 +118,10 @@ function Dashboard() {
     setPwBusy(true);
     // Re-authenticate first
     const email = user?.email ?? "";
-    const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: pwForm.current });
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email,
+      password: pwForm.current,
+    });
     if (signInErr) {
       setPwBusy(false);
       setPwError("Current password is incorrect.");
@@ -123,7 +129,10 @@ function Dashboard() {
     }
     const { error: updateErr } = await supabase.auth.updateUser({ password: pwForm.next });
     setPwBusy(false);
-    if (updateErr) { setPwError(updateErr.message); return; }
+    if (updateErr) {
+      setPwError(updateErr.message);
+      return;
+    }
     setPwForm({ current: "", next: "", confirm: "" });
     setPwSaved(true);
     setTimeout(() => setPwSaved(false), 3000);
@@ -132,30 +141,35 @@ function Dashboard() {
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !user) return;
-    
+
     setUploadingAvatar(true);
     setError(null);
-    
+
     const ext = file.name.split(".").pop() ?? "jpg";
     const path = `${user.id}/avatar.${ext}`;
-    
-    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true });
     if (upErr) {
       setError(upErr.message);
       setUploadingAvatar(false);
       return;
     }
-    
+
     const { data } = supabase.storage.from("avatars").getPublicUrl(path);
     const avatarUrl = data.publicUrl;
-    
-    const { error: updateErr } = await supabase.from("profiles").update({ avatar_url: avatarUrl }).eq("id", user.id);
+
+    const { error: updateErr } = await supabase
+      .from("profiles")
+      .update({ avatar_url: avatarUrl })
+      .eq("id", user.id);
     if (updateErr) {
       setError(updateErr.message);
     } else if (profile) {
       setProfile({ ...profile, avatar_url: avatarUrl });
     }
-    
+
     setUploadingAvatar(false);
   }
 
@@ -180,7 +194,11 @@ function Dashboard() {
               <div className="sm:col-span-2 mb-2 flex items-center gap-4">
                 <div className="relative h-16 w-16 overflow-hidden rounded-full border border-border bg-secondary/50">
                   {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                    <img
+                      src={profile.avatar_url}
+                      alt="Profile"
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-lg font-bold text-muted-foreground">
                       {profile.full_name.charAt(0)}
@@ -188,34 +206,74 @@ function Dashboard() {
                   )}
                   <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100">
                     <span className="text-[10px] font-semibold text-white">Edit</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                    />
                   </label>
                 </div>
-                {uploadingAvatar && <span className="text-xs text-muted-foreground">Uploading...</span>}
+                {uploadingAvatar && (
+                  <span className="text-xs text-muted-foreground">Uploading...</span>
+                )}
               </div>
               <label className="block sm:col-span-2">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Full name</span>
-                <input className={inputClass} value={profile.full_name} onChange={set("full_name")} />
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Full name
+                </span>
+                <input
+                  className={inputClass}
+                  value={profile.full_name}
+                  onChange={set("full_name")}
+                />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">IEEE member ID</span>
-                <input className={inputClass} value={profile.ieee_member_id ?? ""} onChange={set("ieee_member_id")} />
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  IEEE member ID
+                </span>
+                <input
+                  className={inputClass}
+                  value={profile.ieee_member_id ?? ""}
+                  onChange={set("ieee_member_id")}
+                />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Phone</span>
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Phone
+                </span>
                 <input className={inputClass} value={profile.phone ?? ""} onChange={set("phone")} />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Branch</span>
-                <input className={inputClass} value={profile.branch ?? ""} onChange={set("branch")} />
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Branch
+                </span>
+                <input
+                  className={inputClass}
+                  value={profile.branch ?? ""}
+                  onChange={set("branch")}
+                />
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Year</span>
-                <input className={inputClass} value={profile.year_of_study ?? ""} onChange={set("year_of_study")} />
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Year
+                </span>
+                <input
+                  className={inputClass}
+                  value={profile.year_of_study ?? ""}
+                  onChange={set("year_of_study")}
+                />
               </label>
               <label className="block sm:col-span-2">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Society</span>
-                <select className={inputClass} value={profile.society ?? ""} onChange={set("society")}>
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Society
+                </span>
+                <select
+                  className={inputClass}
+                  value={profile.society ?? ""}
+                  onChange={set("society")}
+                >
                   <option value="">None</option>
                   {societies.map((c) => (
                     <option key={c.slug} value={c.slug}>
@@ -225,8 +283,14 @@ function Dashboard() {
                 </select>
               </label>
               <label className="block sm:col-span-2">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Enrollment No.</span>
-                <input className={inputClass} value={profile.enrollment_no ?? ""} onChange={set("enrollment_no")} />
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Enrollment No.
+                </span>
+                <input
+                  className={inputClass}
+                  value={profile.enrollment_no ?? ""}
+                  onChange={set("enrollment_no")}
+                />
               </label>
               {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
               <div className="flex items-center gap-3 sm:col-span-2">
@@ -255,11 +319,17 @@ function Dashboard() {
               ))}
             </ul>
             <div className="mt-5 flex flex-wrap gap-2">
-              <Link to="/members" className="rounded-md border border-border px-3 py-1.5 text-sm font-medium">
+              <Link
+                to="/members"
+                className="rounded-md border border-border px-3 py-1.5 text-sm font-medium"
+              >
                 Member directory
               </Link>
               {canEdit && (
-                <Link to="/admin" className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground">
+                <Link
+                  to="/admin"
+                  className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground"
+                >
                   Admin panel
                 </Link>
               )}
@@ -296,7 +366,9 @@ function Dashboard() {
             <form onSubmit={changePassword} className="mt-4 space-y-3">
               {/* Current password */}
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Current password</span>
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Current password
+                </span>
                 <div className="relative">
                   <input
                     required
@@ -305,15 +377,21 @@ function Dashboard() {
                     value={pwForm.current}
                     onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
                   />
-                  <button type="button" tabIndex={-1} onClick={() => setShowCurrent((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowCurrent((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </label>
               {/* New password */}
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">New password</span>
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  New password
+                </span>
                 <div className="relative">
                   <input
                     required
@@ -323,15 +401,21 @@ function Dashboard() {
                     value={pwForm.next}
                     onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
                   />
-                  <button type="button" tabIndex={-1} onClick={() => setShowNew((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowNew((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </label>
               {/* Confirm new password */}
               <label className="block">
-                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Confirm new password</span>
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">
+                  Confirm new password
+                </span>
                 <div className="relative">
                   <input
                     required
@@ -341,14 +425,20 @@ function Dashboard() {
                     value={pwForm.confirm}
                     onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
                   />
-                  <button type="button" tabIndex={-1} onClick={() => setShowConfirm((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowConfirm((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </label>
               {pwError && <p className="text-sm text-destructive">{pwError}</p>}
-              {pwSaved && <p className="text-sm text-green-600 font-medium">Password updated successfully!</p>}
+              {pwSaved && (
+                <p className="text-sm text-green-600 font-medium">Password updated successfully!</p>
+              )}
               <button
                 type="submit"
                 disabled={pwBusy}

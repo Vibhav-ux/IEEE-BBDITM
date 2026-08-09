@@ -9,7 +9,10 @@ export const Route = createFileRoute("/_authenticated/members")({
   head: () => ({
     meta: [
       { title: "Member Directory — IEEE BBDITM" },
-      { name: "description", content: "IEEE BBDITM member records, visible according to your role." },
+      {
+        name: "description",
+        content: "IEEE BBDITM member records, visible according to your role.",
+      },
       { property: "og:title", content: "Member Directory — IEEE BBDITM" },
       { property: "og:description", content: "IEEE BBDITM member records for branch leadership." },
     ],
@@ -63,7 +66,10 @@ function MembersPage() {
   }, []);
 
   const filtered = members.filter((m) =>
-    [m.full_name, m.ieee_member_id, m.email, m.society].join(" ").toLowerCase().includes(q.toLowerCase()),
+    [m.full_name, m.ieee_member_id, m.email, m.society]
+      .join(" ")
+      .toLowerCase()
+      .includes(q.toLowerCase()),
   );
 
   async function saveMember(e: React.FormEvent) {
@@ -177,39 +183,88 @@ function MembersPage() {
                 )}
 
                 {canEdit && editing?.id === m.id && (
-                  <form onSubmit={saveMember} className="mt-4 space-y-2 rounded-lg border border-border p-3">
-                    <input className={inputClass} value={editing.full_name} placeholder="Full name"
-                      onChange={(e) => setEditing({ ...editing, full_name: e.target.value })} />
-                    <input className={inputClass} value={editing.ieee_member_id ?? ""} placeholder="IEEE member ID"
-                      onChange={(e) => setEditing({ ...editing, ieee_member_id: e.target.value })} />
-                    <input className={inputClass} value={editing.phone ?? ""} placeholder="Phone"
-                      onChange={(e) => setEditing({ ...editing, phone: e.target.value })} />
-                    <input className={inputClass} value={editing.branch ?? ""} placeholder="Branch"
-                      onChange={(e) => setEditing({ ...editing, branch: e.target.value })} />
-                    <input className={inputClass} value={editing.year_of_study ?? ""} placeholder="Year"
-                      onChange={(e) => setEditing({ ...editing, year_of_study: e.target.value })} />
-                    <input className={inputClass} value={editing.society ?? ""} placeholder="Society slug"
-                      onChange={(e) => setEditing({ ...editing, society: e.target.value })} />
+                  <form
+                    onSubmit={saveMember}
+                    className="mt-4 space-y-2 rounded-lg border border-border p-3"
+                  >
+                    <input
+                      className={inputClass}
+                      value={editing.full_name}
+                      placeholder="Full name"
+                      onChange={(e) => setEditing({ ...editing, full_name: e.target.value })}
+                    />
+                    <input
+                      className={inputClass}
+                      value={editing.ieee_member_id ?? ""}
+                      placeholder="IEEE member ID"
+                      onChange={(e) => setEditing({ ...editing, ieee_member_id: e.target.value })}
+                    />
+                    <input
+                      className={inputClass}
+                      value={editing.phone ?? ""}
+                      placeholder="Phone"
+                      onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                    />
+                    <input
+                      className={inputClass}
+                      value={editing.branch ?? ""}
+                      placeholder="Branch"
+                      onChange={(e) => setEditing({ ...editing, branch: e.target.value })}
+                    />
+                    <input
+                      className={inputClass}
+                      value={editing.year_of_study ?? ""}
+                      placeholder="Year"
+                      onChange={(e) => setEditing({ ...editing, year_of_study: e.target.value })}
+                    />
+                    <input
+                      className={inputClass}
+                      value={editing.society ?? ""}
+                      placeholder="Society slug"
+                      onChange={(e) => setEditing({ ...editing, society: e.target.value })}
+                    />
                     <div className="grid grid-cols-2 gap-2 border-t border-border pt-2">
-                      <input className={inputClass} placeholder="Position title" value={newPos.title}
-                        onChange={(e) => setNewPos({ ...newPos, title: e.target.value })} />
-                      <input className={inputClass} placeholder="Society" value={newPos.society}
-                        onChange={(e) => setNewPos({ ...newPos, society: e.target.value })} />
-                      <input type="date" className={inputClass} value={newPos.start_date}
-                        onChange={(e) => setNewPos({ ...newPos, start_date: e.target.value })} />
-                      <input type="date" className={inputClass} value={newPos.end_date}
-                        onChange={(e) => setNewPos({ ...newPos, end_date: e.target.value })} />
+                      <input
+                        className={inputClass}
+                        placeholder="Position title"
+                        value={newPos.title}
+                        onChange={(e) => setNewPos({ ...newPos, title: e.target.value })}
+                      />
+                      <input
+                        className={inputClass}
+                        placeholder="Society"
+                        value={newPos.society}
+                        onChange={(e) => setNewPos({ ...newPos, society: e.target.value })}
+                      />
+                      <input
+                        type="date"
+                        className={inputClass}
+                        value={newPos.start_date}
+                        onChange={(e) => setNewPos({ ...newPos, start_date: e.target.value })}
+                      />
+                      <input
+                        type="date"
+                        className={inputClass}
+                        value={newPos.end_date}
+                        onChange={(e) => setNewPos({ ...newPos, end_date: e.target.value })}
+                      />
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">
                         Save
                       </button>
-                      <button type="button" onClick={() => void addPosition(m.id)}
-                        className="rounded-md border border-border px-3 py-1.5 text-xs font-medium">
+                      <button
+                        type="button"
+                        onClick={() => void addPosition(m.id)}
+                        className="rounded-md border border-border px-3 py-1.5 text-xs font-medium"
+                      >
                         Add position
                       </button>
-                      <button type="button" onClick={() => setEditing(null)}
-                        className="rounded-md px-3 py-1.5 text-xs text-muted-foreground">
+                      <button
+                        type="button"
+                        onClick={() => setEditing(null)}
+                        className="rounded-md px-3 py-1.5 text-xs text-muted-foreground"
+                      >
                         Cancel
                       </button>
                     </div>
@@ -220,7 +275,9 @@ function MembersPage() {
           })}
         </div>
 
-        {filtered.length === 0 && <p className="text-sm text-muted-foreground">No member records visible to you.</p>}
+        {filtered.length === 0 && (
+          <p className="text-sm text-muted-foreground">No member records visible to you.</p>
+        )}
       </section>
     </>
   );

@@ -52,7 +52,9 @@ function EventsPage() {
   useEffect(() => {
     supabase
       .from("events")
-      .select("title, description, event_date, date_label, type, status, video_url, cover_image_url")
+      .select(
+        "title, description, event_date, date_label, type, status, video_url, cover_image_url",
+      )
       .order("event_date", { ascending: true })
       .then(({ data }) => {
         if (data && data.length > 0) {
@@ -82,8 +84,8 @@ function EventsPage() {
           alt="IEEE BBDITM tech event auditorium"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
         <div className="section-shell relative z-10 py-20">
           <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
             Events
@@ -92,7 +94,8 @@ function EventsPage() {
             Everything we run through the year
           </h1>
           <p className="mt-4 max-w-lg text-sm leading-relaxed text-white/80 md:text-base">
-            From our flagship summit to chapter days and hands-on bootcamps — filter by the kind of event you're after.
+            From our flagship summit to chapter days and hands-on bootcamps — filter by the kind of
+            event you're after.
           </p>
         </div>
       </section>
@@ -117,10 +120,7 @@ function EventsPage() {
 
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {list.map((e, i) => (
-            <article
-              key={e.title}
-              className="group overflow-hidden rounded-xl card-elevated"
-            >
+            <article key={e.title} className="group overflow-hidden rounded-xl card-elevated">
               <div className="relative h-48 overflow-hidden bg-black">
                 {e.video_url ? (
                   <iframe
@@ -138,7 +138,9 @@ function EventsPage() {
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 )}
-                {!e.video_url && <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />}
+                {!e.video_url && (
+                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+                )}
                 <span className="absolute top-3 right-3 rounded-full bg-primary/90 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm z-10 shadow-sm pointer-events-none">
                   {e.status}
                 </span>
@@ -151,7 +153,9 @@ function EventsPage() {
                   </span>
                 </div>
                 <h2 className="mt-3 text-lg font-semibold">{e.title}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{e.description}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {e.description}
+                </p>
               </div>
             </article>
           ))}

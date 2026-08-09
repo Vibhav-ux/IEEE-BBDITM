@@ -50,8 +50,8 @@ function JoinPage() {
           alt="Students joining hands together at BBDITM campus"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
         <div className="section-shell relative z-10 py-20">
           <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
             Membership

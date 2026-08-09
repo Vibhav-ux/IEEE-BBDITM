@@ -71,8 +71,7 @@ function AuthPage() {
   }, [loading, user, navigate]);
 
   const set =
-    (k: keyof typeof form) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -88,7 +87,9 @@ function AuthPage() {
     if (!avatarFile) return null;
     const ext = avatarFile.name.split(".").pop() ?? "jpg";
     const path = `${userId}/avatar.${ext}`;
-    const { error: upErr } = await supabase.storage.from("avatars").upload(path, avatarFile, { upsert: true });
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, avatarFile, { upsert: true });
     if (upErr) {
       console.error("Avatar upload error:", upErr.message);
       return null;
@@ -157,8 +158,8 @@ function AuthPage() {
           </div>
           <h1 className="font-display text-2xl font-bold">You're registered!</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Your account is <strong>pending approval</strong> by the Branch Counsellor. You'll receive
-            access to the member portal once your account is approved.
+            Your account is <strong>pending approval</strong> by the Branch Counsellor. You'll
+            receive access to the member portal once your account is approved.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             Registered as <span className="font-mono font-medium">{form.email}</span>
@@ -216,7 +217,11 @@ function AuthPage() {
                     className="group relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-border bg-secondary/40 transition-all hover:border-primary/50 hover:bg-primary/5"
                   >
                     {avatarPreview ? (
-                      <img src={avatarPreview} alt="Avatar preview" className="h-full w-full object-cover" />
+                      <img
+                        src={avatarPreview}
+                        alt="Avatar preview"
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <Camera className="h-6 w-6 text-muted-foreground transition-colors group-hover:text-primary" />
                     )}
@@ -224,14 +229,25 @@ function AuthPage() {
                       <Camera className="h-5 w-5 text-white" />
                     </div>
                   </button>
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+                  <input
+                    ref={fileRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
                   <span className="text-[11px] text-muted-foreground">
                     {avatarFile ? avatarFile.name : "Upload profile photo (optional)"}
                   </span>
                 </div>
 
                 <Field label="Full name">
-                  <input required className={inputClass} value={form.full_name} onChange={set("full_name")} />
+                  <input
+                    required
+                    className={inputClass}
+                    value={form.full_name}
+                    onChange={set("full_name")}
+                  />
                 </Field>
                 <Field label="IEEE membership ID">
                   <input
@@ -247,15 +263,28 @@ function AuthPage() {
                     <input className={inputClass} value={form.branch} onChange={set("branch")} />
                   </Field>
                   <Field label="Year">
-                    <input className={inputClass} value={form.year_of_study} onChange={set("year_of_study")} />
+                    <input
+                      className={inputClass}
+                      value={form.year_of_study}
+                      onChange={set("year_of_study")}
+                    />
                   </Field>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Phone">
-                    <input className={inputClass} placeholder="+91 ..." value={form.phone} onChange={set("phone")} />
+                    <input
+                      className={inputClass}
+                      placeholder="+91 ..."
+                      value={form.phone}
+                      onChange={set("phone")}
+                    />
                   </Field>
                   <Field label="Enrollment No.">
-                    <input className={inputClass} value={form.enrollment_no} onChange={set("enrollment_no")} />
+                    <input
+                      className={inputClass}
+                      value={form.enrollment_no}
+                      onChange={set("enrollment_no")}
+                    />
                   </Field>
                 </div>
 
@@ -277,11 +306,16 @@ function AuthPage() {
                     Position request (optional)
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Let the counsellor know what role you'd like to hold. You can hold positions in multiple societies.
+                    Let the counsellor know what role you'd like to hold. You can hold positions in
+                    multiple societies.
                   </p>
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Desired society">
-                      <select className={inputClass} value={form.desired_society} onChange={set("desired_society")}>
+                      <select
+                        className={inputClass}
+                        value={form.desired_society}
+                        onChange={set("desired_society")}
+                      >
                         <option value="">— Select —</option>
                         <option value="branch">IEEE Student Branch</option>
                         {societies.map((c) => (
@@ -292,7 +326,11 @@ function AuthPage() {
                       </select>
                     </Field>
                     <Field label="Desired position">
-                      <select className={inputClass} value={form.desired_position} onChange={set("desired_position")}>
+                      <select
+                        className={inputClass}
+                        value={form.desired_position}
+                        onChange={set("desired_position")}
+                      >
                         <option value="">— Select —</option>
                         {POSITIONS.map((p) => (
                           <option key={p} value={p}>
@@ -308,14 +346,21 @@ function AuthPage() {
                 <div className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3">
                   <Clock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
                   <p className="text-xs leading-relaxed text-amber-700">
-                    Your account will be reviewed by the Branch Counsellor before you get access to the member portal.
+                    Your account will be reviewed by the Branch Counsellor before you get access to
+                    the member portal.
                   </p>
                 </div>
               </>
             )}
 
             <Field label="Email">
-              <input required type="email" className={inputClass} value={form.email} onChange={set("email")} />
+              <input
+                required
+                type="email"
+                className={inputClass}
+                value={form.email}
+                onChange={set("email")}
+              />
             </Field>
             <Field label="Password">
               <div className="relative">

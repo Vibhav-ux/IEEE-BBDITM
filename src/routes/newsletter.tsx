@@ -8,14 +8,19 @@ export const Route = createFileRoute("/newsletter")({
   head: () => ({
     meta: [
       { title: "Newsletter — IEEE BBDITM" },
-      { name: "description", content: "Subscribe to the IEEE BBDITM Student Branch newsletter for updates on events, workshops and opportunities." },
+      {
+        name: "description",
+        content:
+          "Subscribe to the IEEE BBDITM Student Branch newsletter for updates on events, workshops and opportunities.",
+      },
     ],
     links: [{ rel: "canonical", href: "/newsletter" }],
   }),
   component: NewsletterPage,
 });
 
-const inputClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary";
+const inputClass =
+  "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary";
 
 function NewsletterPage() {
   const [email, setEmail] = useState("");
@@ -61,7 +66,8 @@ function NewsletterPage() {
               </div>
               <h2 className="mt-4 text-lg font-semibold">You're subscribed!</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Thank you, {name || "member"}! You'll start receiving our newsletter at <strong>{email}</strong>.
+                Thank you, {name || "member"}! You'll start receiving our newsletter at{" "}
+                <strong>{email}</strong>.
               </p>
             </div>
           ) : (
@@ -73,7 +79,9 @@ function NewsletterPage() {
                 <h2 className="text-lg font-semibold">Join our mailing list</h2>
               </div>
               <div>
-                <label htmlFor="nl-name" className="text-xs font-medium text-muted-foreground">Full Name</label>
+                <label htmlFor="nl-name" className="text-xs font-medium text-muted-foreground">
+                  Full Name
+                </label>
                 <input
                   id="nl-name"
                   className={inputClass}
@@ -84,7 +92,9 @@ function NewsletterPage() {
                 />
               </div>
               <div>
-                <label htmlFor="nl-email" className="text-xs font-medium text-muted-foreground">Email address</label>
+                <label htmlFor="nl-email" className="text-xs font-medium text-muted-foreground">
+                  Email address
+                </label>
                 <input
                   id="nl-email"
                   type="email"

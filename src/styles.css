@@ -74,7 +74,7 @@
   --secondary: oklch(0.965 0.006 250);
   --secondary-foreground: oklch(0.25 0.03 255);
   --muted: oklch(0.96 0.006 250);
-  --muted-foreground: oklch(0.50 0.02 255);
+  --muted-foreground: oklch(0.5 0.02 255);
   --accent: oklch(0.95 0.025 252);
   --accent-foreground: oklch(0.38 0.14 255);
   --destructive: oklch(0.577 0.245 27.325);
@@ -141,35 +141,62 @@
 
 /* ── Subtle keyframe animations ──────────────────────────── */
 @keyframes gentle-shimmer {
-  0% { background-position: -200% center; }
-  100% { background-position: 200% center; }
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
 }
 
 @keyframes soft-float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 @keyframes gradient-drift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes soft-pulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 0.8; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
 /* ── IEEE Blue Breeze — body breathing ─────────────────── */
 /* Slowly pulses between warm off-white and soft sky-blue tint */
 @keyframes blue-breathe {
-  0%, 100% {
+  0%,
+  100% {
     background-color: oklch(0.985 0.002 250);
   }
   50% {
@@ -179,7 +206,8 @@
 
 /* Deeper breathing for alternating sections */
 @keyframes section-breathe {
-  0%, 100% {
+  0%,
+  100% {
     background-color: oklch(0.97 0.012 250);
   }
   50% {
@@ -248,13 +276,22 @@
 
 /* ── Refined primary button with soft gradient ─── */
 @utility btn-primary {
-  background: linear-gradient(135deg, oklch(0.48 0.17 255), oklch(0.52 0.17 255), oklch(0.56 0.16 258));
+  background: linear-gradient(
+    135deg,
+    oklch(0.48 0.17 255),
+    oklch(0.52 0.17 255),
+    oklch(0.56 0.16 258)
+  );
   background-size: 200% 200%;
   animation: gradient-drift 6s ease infinite;
-  box-shadow: 0 2px 8px oklch(0.52 0.17 255 / 0.2), 0 1px 3px oklch(0 0 0 / 0.06);
+  box-shadow:
+    0 2px 8px oklch(0.52 0.17 255 / 0.2),
+    0 1px 3px oklch(0 0 0 / 0.06);
   transition: all 0.3s ease;
   &:hover {
-    box-shadow: 0 4px 16px oklch(0.52 0.17 255 / 0.3), 0 2px 6px oklch(0 0 0 / 0.08);
+    box-shadow:
+      0 4px 16px oklch(0.52 0.17 255 / 0.3),
+      0 2px 6px oklch(0 0 0 / 0.08);
     transform: translateY(-1px);
   }
 }
@@ -267,7 +304,9 @@
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
     border-color: oklch(0.52 0.17 255 / 0.25);
-    box-shadow: 0 8px 30px oklch(0.52 0.17 255 / 0.08), 0 2px 8px oklch(0 0 0 / 0.04);
+    box-shadow:
+      0 8px 30px oklch(0.52 0.17 255 / 0.08),
+      0 2px 8px oklch(0 0 0 / 0.04);
     transform: translateY(-3px);
   }
 }

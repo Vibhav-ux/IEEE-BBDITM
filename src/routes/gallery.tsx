@@ -74,8 +74,8 @@ function GalleryPage() {
           alt="IEEE BBDITM student branch team"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
         <div className="section-shell relative z-10 py-20">
           <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
             Album
@@ -168,7 +168,10 @@ function GalleryPage() {
           {/* Prev */}
           {list.length > 1 && (
             <button
-              onClick={(e) => { e.stopPropagation(); prev(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                prev();
+              }}
               className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/15 p-3 text-white hover:bg-white/30 transition-colors"
               aria-label="Previous photo"
             >
@@ -177,10 +180,7 @@ function GalleryPage() {
           )}
 
           {/* Image */}
-          <div
-            className="relative max-h-[90vh] max-w-[90vw]"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
             <img
               src={list[lightbox].url}
               alt={list[lightbox].title ?? list[lightbox].caption ?? "Photo"}
@@ -204,7 +204,10 @@ function GalleryPage() {
           {/* Next */}
           {list.length > 1 && (
             <button
-              onClick={(e) => { e.stopPropagation(); next(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                next();
+              }}
               className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/15 p-3 text-white hover:bg-white/30 transition-colors"
               aria-label="Next photo"
             >

@@ -1,5 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, CalendarDays, Sparkles, Users, Globe, Wrench, Award, UserCheck } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Sparkles,
+  Users,
+  Globe,
+  Wrench,
+  Award,
+  UserCheck,
+} from "lucide-react";
 
 import campusImage from "@/assets/campus-aerial.png";
 import collaborationImage from "@/assets/students-collaboration.png";
@@ -20,7 +29,7 @@ const chapterImages: Record<string, string> = {
   emb: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop",
 };
 
-export const Route = createFileRoute("/")(  {
+export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "IEEE BBDITM Student Branch — Technology, Community, Impact" },
@@ -56,13 +65,14 @@ function Index() {
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
         {/* Warm, inviting overlay — dark enough for readability, light enough to feel open */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/25" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/25" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
         {/* Soft warm blue accent at bottom */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "radial-gradient(ellipse 80% 40% at 50% 100%, oklch(0.52 0.17 255 / 0.08) 0%, transparent 70%)",
+            background:
+              "radial-gradient(ellipse 80% 40% at 50% 100%, oklch(0.52 0.17 255 / 0.08) 0%, transparent 70%)",
           }}
         />
 
@@ -76,8 +86,8 @@ function Index() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
             A student-run engineering community at Babu Banarasi Das Institute of Technology and
-            Management, Lucknow — building projects, running events and advancing technology for
-            the benefit of humanity.
+            Management, Lucknow — building projects, running events and advancing technology for the
+            benefit of humanity.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
@@ -96,7 +106,10 @@ function Index() {
 
           <dl className="mt-16 grid max-w-3xl grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/15 bg-white/10 backdrop-blur-md md:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} className="bg-white/5 px-5 py-6 text-center transition-colors hover:bg-white/15">
+              <div
+                key={s.label}
+                className="bg-white/5 px-5 py-6 text-center transition-colors hover:bg-white/15"
+              >
                 <dt className="font-display text-2xl font-bold text-white">{s.value}</dt>
                 <dd className="mt-1 text-xs text-white/70">{s.label}</dd>
               </div>
@@ -106,8 +119,17 @@ function Index() {
       </section>
       {/* Soft wave divider */}
       <div className="relative -mb-px">
-        <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-8 md:h-10" preserveAspectRatio="none">
-          <path d="M0 20C240 5 480 35 720 20C960 5 1200 35 1440 20V40H0Z" fill="oklch(0.97 0.012 250)" />
+        <svg
+          viewBox="0 0 1440 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-8 md:h-10"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0 20C240 5 480 35 720 20C960 5 1200 35 1440 20V40H0Z"
+            fill="oklch(0.97 0.012 250)"
+          />
         </svg>
       </div>
 
@@ -115,16 +137,21 @@ function Index() {
       <section className="border-b border-border section-breathe py-4">
         <div className="section-shell flex items-center gap-6 overflow-x-auto scrollbar-none">
           <div className="flex shrink-0 gap-4">
-            {[collaborationImage, eventImage, workshopImage, collaborationImage, eventImage, workshopImage].map(
-              (src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt=""
-                  className="h-20 w-32 rounded-lg object-cover opacity-80 transition-all duration-300 hover:opacity-100 hover:shadow-lg hover:scale-[1.03]"
-                />
-              )
-            )}
+            {[
+              collaborationImage,
+              eventImage,
+              workshopImage,
+              collaborationImage,
+              eventImage,
+              workshopImage,
+            ].map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt=""
+                className="h-20 w-32 rounded-lg object-cover opacity-80 transition-all duration-300 hover:opacity-100 hover:shadow-lg hover:scale-[1.03]"
+              />
+            ))}
           </div>
         </div>
       </section>
@@ -133,7 +160,9 @@ function Index() {
       <section className="section-shell py-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold md:text-3xl text-shimmer">Societies & affinity groups</h2>
+            <h2 className="text-2xl font-bold md:text-3xl text-shimmer">
+              Societies & affinity groups
+            </h2>
             <p className="mt-2 max-w-lg text-sm text-muted-foreground">
               Seven specialised societies, each with its own events, mentors and projects.
             </p>
@@ -147,24 +176,23 @@ function Index() {
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {societies.slice(0, 3).map((c) => (
-            <article
-              key={c.slug}
-              className="group overflow-hidden rounded-xl card-elevated"
-            >
+            <article key={c.slug} className="group overflow-hidden rounded-xl card-elevated">
               <div className="relative h-40 overflow-hidden">
                 <img
                   src={chapterImages[c.slug]}
                   alt={c.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                 <span className="absolute bottom-3 left-4 text-xs font-semibold uppercase tracking-wide text-white/90">
                   {c.tagline}
                 </span>
               </div>
               <div className="p-6">
                 <h3 className="text-lg font-semibold">{c.name}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{c.description}</p>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                  {c.description}
+                </p>
               </div>
             </article>
           ))}
@@ -173,8 +201,17 @@ function Index() {
 
       {/* Soft wave divider */}
       <div className="relative -mb-px">
-        <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-8 md:h-10" preserveAspectRatio="none">
-          <path d="M0 20C360 35 720 5 1080 20C1260 28 1380 15 1440 20V40H0Z" fill="oklch(0.97 0.012 250)" />
+        <svg
+          viewBox="0 0 1440 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-8 md:h-10"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0 20C360 35 720 5 1080 20C1260 28 1380 15 1440 20V40H0Z"
+            fill="oklch(0.97 0.012 250)"
+          />
         </svg>
       </div>
 
@@ -190,13 +227,15 @@ function Index() {
             <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-black/10 transition-all group-hover:ring-primary/20" />
           </div>
           <div>
-            <span className="text-xs font-semibold uppercase tracking-widest text-primary">What we do</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-primary">
+              What we do
+            </span>
             <h2 className="mt-3 text-2xl font-bold md:text-3xl">Engineering beyond the syllabus</h2>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               We run technical workshops, hackathons, industry talks and humanitarian technology
               projects across the academic year. Members get access to the global IEEE network,
-              conference opportunities, the IEEE Xplore digital library and a route into
-              leadership roles inside the branch.
+              conference opportunities, the IEEE Xplore digital library and a route into leadership
+              roles inside the branch.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
               Our flagship event, Unstoppable Journey, brings together speakers, competitions and
@@ -239,7 +278,7 @@ function Index() {
                     alt={e.title}
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
                   <span className="absolute top-3 right-3 rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-bold uppercase text-primary-foreground shadow-sm">
                     {e.status}
                   </span>
@@ -298,7 +337,8 @@ function Index() {
           <div
             className="absolute inset-0"
             style={{
-              background: "linear-gradient(135deg, oklch(0.45 0.17 255 / 0.88), oklch(0.52 0.17 255 / 0.85), oklch(0.48 0.15 258 / 0.90))",
+              background:
+                "linear-gradient(135deg, oklch(0.45 0.17 255 / 0.88), oklch(0.52 0.17 255 / 0.85), oklch(0.48 0.15 258 / 0.90))",
               backgroundSize: "200% 200%",
               animation: "gradient-drift 8s ease infinite",
             }}

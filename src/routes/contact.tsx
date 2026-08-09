@@ -62,8 +62,8 @@ function ContactPage() {
           alt="BBDITM campus at golden hour"
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/30" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent" />
         <div className="section-shell relative z-10 py-20">
           <span className="text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
             Contact
@@ -79,7 +79,11 @@ function ContactPage() {
       </section>
 
       <section className="section-shell grid gap-10 py-16 md:grid-cols-[1fr_0.8fr]">
-        <form ref={formRef} onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-7">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="rounded-xl border border-border bg-card p-7"
+        >
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="text-sm font-medium">
               Name
@@ -136,8 +140,7 @@ function ContactPage() {
             <MapPin className="h-5 w-5 text-primary" />
             <h2 className="mt-4 text-base font-semibold">Campus</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              BBDITM, Sector I, Dr. Akhilesh Das Nagar, Faizabad Road, Lucknow 226028, Uttar
-              Pradesh
+              BBDITM, Sector I, Dr. Akhilesh Das Nagar, Faizabad Road, Lucknow 226028, Uttar Pradesh
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-6">

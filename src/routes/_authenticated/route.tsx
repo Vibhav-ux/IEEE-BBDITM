@@ -31,15 +31,24 @@ function AuthenticatedLayout() {
       <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 text-center">
         <div className="max-w-md">
           <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-            <svg className="h-10 w-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="h-10 w-10 text-primary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h1 className="font-display text-2xl font-bold">Account pending approval</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Your registration is under review. The Branch Counsellor will approve your account shortly.
-            You'll have full access once approved.
+            Your registration is under review. The Branch Counsellor will approve your account
+            shortly. You'll have full access once approved.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             Signed in as <span className="font-mono font-medium">{user.email}</span>

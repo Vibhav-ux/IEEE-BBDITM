@@ -8,13 +8,21 @@ export function SiteFooter() {
         <div>
           <p className="font-display text-lg font-semibold">IEEE BBDITM Student Branch</p>
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">
-            Babu Banarasi Das Institute of Technology and Management, Lucknow — advancing
-            technology for the benefit of humanity.
+            Babu Banarasi Das Institute of Technology and Management, Lucknow — advancing technology
+            for the benefit of humanity.
           </p>
           <div className="mt-5 flex gap-3">
             {[
-              { Icon: Linkedin, href: "https://www.linkedin.com/company/ieee-bbditm-student-branch/", label: "LinkedIn" },
-              { Icon: Instagram, href: "https://www.instagram.com/ieeebbditm/", label: "Instagram" },
+              {
+                Icon: Linkedin,
+                href: "https://www.linkedin.com/company/ieee-bbditm-student-branch/",
+                label: "LinkedIn",
+              },
+              {
+                Icon: Instagram,
+                href: "https://www.instagram.com/ieeebbditm/",
+                label: "Instagram",
+              },
               {
                 Icon: Youtube,
                 href: "https://www.youtube.com/channel/UCzWiM2vDa7y14JhyFxCLGNQ",

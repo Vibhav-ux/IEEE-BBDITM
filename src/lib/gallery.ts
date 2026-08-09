@@ -18,7 +18,7 @@ export async function loadPhotos(): Promise<(Photo & { url: string })[]> {
   const photos = (data ?? []) as Photo[];
   const paths = photos.map((p) => p.storage_path).filter(Boolean) as string[];
   const signed = paths.length
-    ? (await supabase.storage.from("gallery").createSignedUrls(paths, 60 * 60)).data ?? []
+    ? ((await supabase.storage.from("gallery").createSignedUrls(paths, 60 * 60)).data ?? [])
     : [];
   const map = new Map(signed.map((s) => [s.path ?? "", s.signedUrl]));
   return photos.map((p) => ({

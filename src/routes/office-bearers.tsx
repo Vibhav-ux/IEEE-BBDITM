@@ -8,7 +8,11 @@ export const Route = createFileRoute("/office-bearers")({
   head: () => ({
     meta: [
       { title: "Office Bearers 2026 — IEEE BBDITM" },
-      { name: "description", content: "IEEE BBDITM Student Branch Executive Committee 2026 — leadership, society chairs and committee members." },
+      {
+        name: "description",
+        content:
+          "IEEE BBDITM Student Branch Executive Committee 2026 — leadership, society chairs and committee members.",
+      },
       { property: "og:title", content: "Office Bearers 2026 — IEEE BBDITM" },
     ],
     links: [{ rel: "canonical", href: "/office-bearers" }],
@@ -27,7 +31,11 @@ function PersonCard({ person }: { person: TeamPerson }) {
   return (
     <div className="group rounded-xl card-elevated p-5 text-center">
       {person.avatarUrl ? (
-        <img src={person.avatarUrl} alt={person.name} className="mx-auto h-16 w-16 rounded-full object-cover" />
+        <img
+          src={person.avatarUrl}
+          alt={person.name}
+          className="mx-auto h-16 w-16 rounded-full object-cover"
+        />
       ) : (
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 font-display text-lg font-bold text-primary transition-all group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-md">
           {initials}
@@ -35,7 +43,9 @@ function PersonCard({ person }: { person: TeamPerson }) {
       )}
       <h3 className="mt-3 text-sm font-semibold">{person.name}</h3>
       <p className="mt-0.5 text-xs font-medium text-primary">{person.role}</p>
-      {person.subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground">{person.subtitle}</p>}
+      {person.subtitle && (
+        <p className="mt-0.5 text-[11px] text-muted-foreground">{person.subtitle}</p>
+      )}
     </div>
   );
 }
@@ -69,7 +79,10 @@ function OfficeBearersPage() {
         </p>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {faculty.map((f) => (
-            <PersonCard key={f.name} person={{ name: f.name, role: f.role, subtitle: f.affiliation }} />
+            <PersonCard
+              key={f.name}
+              person={{ name: f.name, role: f.role, subtitle: f.affiliation }}
+            />
           ))}
         </div>
       </section>
@@ -101,7 +114,9 @@ function OfficeBearersPage() {
                 className="inline-block h-3 w-3 rounded-full"
                 style={{ backgroundColor: society?.color ?? "#006699" }}
               />
-              <h2 className="text-lg font-bold md:text-xl">{society?.name ?? slug.toUpperCase()}</h2>
+              <h2 className="text-lg font-bold md:text-xl">
+                {society?.name ?? slug.toUpperCase()}
+              </h2>
             </div>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {members.map((m) => (

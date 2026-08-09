@@ -73,7 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setIsApproved(data?.status === "approved");
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [userId]);
 
   const roleNames = roles.map((r) => r.role);
@@ -106,7 +108,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     canManageMembers,
     isApproved,
     isCounsellor,
-    chairSocieties: roles.filter((r) => r.role === "society_chair" && r.society).map((r) => r.society!),
+    chairSocieties: roles
+      .filter((r) => r.role === "society_chair" && r.society)
+      .map((r) => r.society!),
     signOut: async () => {
       await supabase.auth.signOut();
     },
