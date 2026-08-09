@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +54,13 @@ function Dashboard() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSaved, setPwSaved] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -91,6 +99,34 @@ function Dashboard() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     }
+  }
+
+  async function changePassword(e: React.FormEvent) {
+    e.preventDefault();
+    setPwError(null);
+    if (pwForm.next !== pwForm.confirm) {
+      setPwError("New passwords do not match.");
+      return;
+    }
+    if (pwForm.next.length < 6) {
+      setPwError("Password must be at least 6 characters.");
+      return;
+    }
+    setPwBusy(true);
+    // Re-authenticate first
+    const email = user?.email ?? "";
+    const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password: pwForm.current });
+    if (signInErr) {
+      setPwBusy(false);
+      setPwError("Current password is incorrect.");
+      return;
+    }
+    const { error: updateErr } = await supabase.auth.updateUser({ password: pwForm.next });
+    setPwBusy(false);
+    if (updateErr) { setPwError(updateErr.message); return; }
+    setPwForm({ current: "", next: "", confirm: "" });
+    setPwSaved(true);
+    setTimeout(() => setPwSaved(false), 3000);
   }
 
   async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -252,6 +288,75 @@ function Dashboard() {
                 ))}
               </ul>
             )}
+          </div>
+
+          {/* Change Password */}
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-lg font-semibold">Change password</h2>
+            <form onSubmit={changePassword} className="mt-4 space-y-3">
+              {/* Current password */}
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Current password</span>
+                <div className="relative">
+                  <input
+                    required
+                    type={showCurrent ? "text" : "password"}
+                    className={inputClass}
+                    value={pwForm.current}
+                    onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))}
+                  />
+                  <button type="button" tabIndex={-1} onClick={() => setShowCurrent((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </label>
+              {/* New password */}
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">New password</span>
+                <div className="relative">
+                  <input
+                    required
+                    type={showNew ? "text" : "password"}
+                    minLength={6}
+                    className={inputClass}
+                    value={pwForm.next}
+                    onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value }))}
+                  />
+                  <button type="button" tabIndex={-1} onClick={() => setShowNew((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </label>
+              {/* Confirm new password */}
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-semibold uppercase text-muted-foreground">Confirm new password</span>
+                <div className="relative">
+                  <input
+                    required
+                    type={showConfirm ? "text" : "password"}
+                    minLength={6}
+                    className={inputClass}
+                    value={pwForm.confirm}
+                    onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value }))}
+                  />
+                  <button type="button" tabIndex={-1} onClick={() => setShowConfirm((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </label>
+              {pwError && <p className="text-sm text-destructive">{pwError}</p>}
+              {pwSaved && <p className="text-sm text-green-600 font-medium">Password updated successfully!</p>}
+              <button
+                type="submit"
+                disabled={pwBusy}
+                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {pwBusy ? "Updating…" : "Update password"}
+              </button>
+            </form>
           </div>
         </div>
       </section>

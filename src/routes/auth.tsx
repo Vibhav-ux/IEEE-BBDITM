@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Clock } from "lucide-react";
+import { Camera, Clock, Eye, EyeOff } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +49,7 @@ function AuthPage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [pendingApproval, setPendingApproval] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState({
@@ -317,14 +318,24 @@ function AuthPage() {
               <input required type="email" className={inputClass} value={form.email} onChange={set("email")} />
             </Field>
             <Field label="Password">
-              <input
-                required
-                type="password"
-                minLength={6}
-                className={inputClass}
-                value={form.password}
-                onChange={set("password")}
-              />
+              <div className="relative">
+                <input
+                  required
+                  type={showPassword ? "text" : "password"}
+                  minLength={6}
+                  className={inputClass}
+                  value={form.password}
+                  onChange={set("password")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </Field>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
