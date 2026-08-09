@@ -72,7 +72,7 @@ function Index() {
             IEEE UP Section · Region 10
           </span>
           <h1 className="mt-6 max-w-3xl text-4xl font-bold leading-[1.05] text-white md:text-6xl drop-shadow-lg">
-            IEEE BBDITM Student Branch
+            IEEE BBDITM
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 md:text-lg">
             A student-run engineering community at Babu Banarasi Das Institute of Technology and

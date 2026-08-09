@@ -8,13 +8,15 @@ import { useAuth } from "@/lib/auth";
 import chaptersHero from "@/assets/chapters-hero.png";
 
 const chapterImages: Record<string, string> = {
+  ieee: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=400&fit=crop",
+  branch: "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=400&fit=crop",
   cs: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=600&h=400&fit=crop",
-  pes: "https://images.unsplash.com/photo-1509390144018-eeaf65052242?w=600&h=400&fit=crop",
-  wie: "https://images.unsplash.com/photo-1573164713988-8665fc963095?w=600&h=400&fit=crop",
+  pes: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&h=400&fit=crop",
+  wie: "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=600&h=400&fit=crop",
   sight: "https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=600&h=400&fit=crop",
   sps: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&h=400&fit=crop",
-  pels: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=400&fit=crop",
-  emb: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop",
+  pels: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=400&fit=crop",
+  emb: "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=600&h=400&fit=crop",
 };
 
 export const Route = createFileRoute("/chapters")({
@@ -189,7 +191,7 @@ function ChaptersPage() {
               {/* Image */}
               <div className="relative h-44 overflow-hidden shrink-0">
                 <img
-                  src={chapterImages[c.slug]}
+                  src={chapterImages[c.slug] || "https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=600&h=400&fit=crop"}
                   alt={c.name}
                   loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
