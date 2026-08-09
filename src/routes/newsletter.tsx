@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Mail, CheckCircle } from "lucide-react";
 import { PageHeader } from "@/components/site/PageHeader";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/newsletter")({
   head: () => ({
@@ -20,11 +21,27 @@ function NewsletterPage() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // In production, this would call a Supabase function or API
-    setSubmitted(true);
+    setBusy(true);
+    setError(null);
+    const { error: err } = await supabase.from("newsletter_subscribers").insert({
+      name: name.trim(),
+      email: email.trim(),
+    });
+    setBusy(false);
+    if (err) {
+      if (err.code === "23505") {
+        setError("This email is already subscribed.");
+      } else {
+        setError(err.message);
+      }
+    } else {
+      setSubmitted(true);
+    }
   }
 
   return (
@@ -80,10 +97,12 @@ function NewsletterPage() {
               </div>
               <button
                 type="submit"
-                className="w-full btn-primary rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
+                disabled={busy}
+                className="w-full btn-primary rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
               >
-                Subscribe
+                {busy ? "Subscribing…" : "Subscribe"}
               </button>
+              {error && <p className="text-sm text-destructive text-center">{error}</p>}
               <p className="text-[11px] text-muted-foreground text-center">
                 We'll never spam you. Unsubscribe anytime.
               </p>

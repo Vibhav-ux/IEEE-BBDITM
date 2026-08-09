@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Trash2, Plus, Users, Calendar, Image, Video, Building2 } from "lucide-react";
+import { Trash2, Plus, Users, Calendar, Image, Video, Building2, Mail, Newspaper } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/lib/auth";
+import { useAuth, type AppRole } from "@/lib/auth";
 import { loadPhotos, type Photo } from "@/lib/gallery";
 import { societies } from "@/data/site";
 
@@ -28,6 +28,9 @@ type EventRow = {
   type: string;
   status: string;
   location: string | null;
+  video_url?: string | null;
+  cover_image_url?: string | null;
+  society?: string | null;
 };
 
 type MemberRow = {
@@ -41,6 +44,13 @@ type MemberRow = {
   avatar_url: string | null;
 };
 
+type RoleRow = {
+  id: string;
+  user_id: string;
+  role: AppRole;
+  society: string | null;
+};
+
 type SocietyRow = {
   slug: string;
   name: string;
@@ -48,6 +58,22 @@ type SocietyRow = {
   tagline: string | null;
   description: string | null;
   color: string | null;
+};
+
+type ContactMessageRow = {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  created_at: string;
+};
+
+type NewsletterRow = {
+  id: string;
+  name: string;
+  email: string;
+  subscribed_at: string;
 };
 
 const inputClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
@@ -62,14 +88,24 @@ const emptyEvent = {
   society: "",
 };
 
+const LEADERSHIP_ROLES: AppRole[] = ["counsellor", "chair", "secretary", "editor", "society_chair"];
+
 function AdminPage() {
   const { canEdit, user, chairSocieties } = useAuth();
-  const [tab, setTab] = useState<"events" | "photos" | "members" | "societies">("events");
+  const [tab, setTab] = useState<"events" | "photos" | "members" | "societies" | "messages" | "newsletter">("events");
   const [events, setEvents] = useState<EventRow[]>([]);
   const [photos, setPhotos] = useState<(Photo & { url: string })[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [memberRoles, setMemberRoles] = useState<RoleRow[]>([]);
+  const [roleDraft, setRoleDraft] = useState<{ userId: string; role: AppRole; society: string }>({
+    userId: "",
+    role: "editor",
+    society: "",
+  });
   const [dbSocieties, setDbSocieties] = useState<SocietyRow[]>([]);
   const [editingSociety, setEditingSociety] = useState<SocietyRow | null>(null);
+  const [contactMessages, setContactMessages] = useState<ContactMessageRow[]>([]);
+  const [newsletterSubs, setNewsletterSubs] = useState<NewsletterRow[]>([]);
   const [form, setForm] = useState(emptyEvent);
   const [photoMeta, setPhotoMeta] = useState({ title: "", album: "General", caption: "" });
   const [file, setFile] = useState<File | null>(null);
@@ -83,6 +119,8 @@ function AdminPage() {
     setPhotos(await loadPhotos());
     const { data: m } = await supabase.from("profiles").select("*").order("full_name");
     setMembers((m ?? []) as MemberRow[]);
+    const { data: roles } = await supabase.from("user_roles").select("id, user_id, role, society");
+    setMemberRoles((roles ?? []) as RoleRow[]);
     const { data: soc } = await supabase.from("societies").select("*").order("name");
     if (soc && soc.length > 0) {
       setDbSocieties(soc as SocietyRow[]);
@@ -90,6 +128,10 @@ function AdminPage() {
       // Fallback if table is empty
       setDbSocieties(societies.map(s => ({ ...s, short_name: s.shortName, tagline: s.tagline || null, description: s.description || null, color: s.color || null })));
     }
+    const { data: msgs } = await supabase.from("contact_messages").select("*").order("created_at", { ascending: false });
+    setContactMessages((msgs ?? []) as ContactMessageRow[]);
+    const { data: subs } = await supabase.from("newsletter_subscribers").select("*").order("subscribed_at", { ascending: false });
+    setNewsletterSubs((subs ?? []) as NewsletterRow[]);
   }
 
   useEffect(() => {
@@ -111,6 +153,18 @@ function AdminPage() {
     setError(null);
     setBusy(true);
 
+    let cover_image_url: string | null = null;
+    if (coverFile) {
+      const path = `events/${Date.now()}-${coverFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("gallery").upload(path, coverFile);
+      if (upErr) {
+        setBusy(false);
+        return setError(upErr.message);
+      }
+      const { data: urlData } = supabase.storage.from("gallery").getPublicUrl(path);
+      cover_image_url = urlData.publicUrl;
+    }
+
     const { error: err } = await supabase.from("events").insert({
       title: form.title,
       description: form.description || null,
@@ -121,6 +175,9 @@ function AdminPage() {
       type: form.type,
       status: form.status,
       location: form.location || null,
+      video_url: form.video_url.trim() || null,
+      society: form.society || null,
+      cover_image_url,
       created_by: user?.id ?? null,
     });
     setBusy(false);
@@ -176,6 +233,29 @@ function AdminPage() {
     void load();
   }
 
+  async function assignRole(userId: string, role: AppRole, society: string) {
+    setError(null);
+    const payload: { user_id: string; role: AppRole; society?: string | null } = {
+      user_id: userId,
+      role,
+    };
+    if (role === "society_chair") {
+      if (!society) return setError("Pick a society for society chair role.");
+      payload.society = society;
+    }
+    const { error: err } = await supabase.from("user_roles").insert(payload);
+    if (err) return setError(err.message);
+    void load();
+  }
+
+  async function removeRole(roleId: string, role: AppRole) {
+    if (role === "member") return;
+    if (!confirm("Remove this role from the member?")) return;
+    const { error: err } = await supabase.from("user_roles").delete().eq("id", roleId);
+    if (err) return setError(err.message);
+    void load();
+  }
+
   async function saveSociety(e: React.FormEvent) {
     e.preventDefault();
     if (!editingSociety) return;
@@ -200,6 +280,8 @@ function AdminPage() {
     { key: "photos" as const, label: "Photos", icon: Image },
     { key: "members" as const, label: "Members", icon: Users },
     { key: "societies" as const, label: "Societies", icon: Building2 },
+    { key: "messages" as const, label: "Messages", icon: Mail },
+    { key: "newsletter" as const, label: "Newsletter", icon: Newspaper },
   ];
 
   return (
@@ -272,6 +354,11 @@ function AdminPage() {
                     <option key={s.slug} value={s.slug}>{s.shortName}</option>
                   ))}
                 </select>
+                <input type="file" accept="image/*" className={inputClass}
+                  onChange={(e) => setCoverFile(e.target.files?.[0] ?? null)} />
+                {coverFile && (
+                  <p className="text-xs text-muted-foreground">Cover: {coverFile.name}</p>
+                )}
               </div>
               <button disabled={busy}
                 className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60">
@@ -369,6 +456,7 @@ function AdminPage() {
                       <th className="pb-3 pr-4">Society</th>
                       <th className="pb-3 pr-4">Branch</th>
                       <th className="pb-3 pr-4">Year</th>
+                      <th className="pb-3 pr-4">Roles</th>
                       <th className="pb-3"></th>
                     </tr>
                   </thead>
@@ -381,13 +469,18 @@ function AdminPage() {
                         .slice(0, 2)
                         .toUpperCase();
                       const society = societies.find((s) => s.slug === m.society);
+                      const roles = memberRoles.filter((r) => r.user_id === m.id);
                       return (
                         <tr key={m.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                           <td className="py-3 pr-4">
                             <div className="flex items-center gap-2.5">
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                                {initials}
-                              </div>
+                              {m.avatar_url ? (
+                                <img src={m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                              ) : (
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                                  {initials}
+                                </div>
+                              )}
                               <span className="font-medium">{m.full_name}</span>
                             </div>
                           </td>
@@ -405,6 +498,63 @@ function AdminPage() {
                           </td>
                           <td className="py-3 pr-4 text-muted-foreground">{m.branch ?? "—"}</td>
                           <td className="py-3 pr-4 text-muted-foreground">{m.year_of_study ?? "—"}</td>
+                          <td className="py-3 pr-4">
+                            <div className="flex flex-wrap gap-1">
+                              {roles.length === 0 && (
+                                <span className="text-xs text-muted-foreground">member</span>
+                              )}
+                              {roles.map((r) => (
+                                <button
+                                  key={r.id}
+                                  type="button"
+                                  onClick={() => removeRole(r.id, r.role)}
+                                  disabled={r.role === "member"}
+                                  title={r.role === "member" ? "Default role" : "Click to remove"}
+                                  className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:cursor-default disabled:hover:bg-secondary disabled:hover:text-muted-foreground"
+                                >
+                                  {r.role.replace("_", " ")}{r.society ? ` · ${r.society}` : ""}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="mt-2 flex flex-wrap items-center gap-1">
+                              <select
+                                className="rounded border border-input bg-background px-1.5 py-1 text-[10px]"
+                                value={roleDraft.userId === m.id ? roleDraft.role : "editor"}
+                                onChange={(e) =>
+                                  setRoleDraft({ userId: m.id, role: e.target.value as AppRole, society: "" })
+                                }
+                              >
+                                {LEADERSHIP_ROLES.map((r) => (
+                                  <option key={r} value={r}>{r.replace("_", " ")}</option>
+                                ))}
+                              </select>
+                              {(roleDraft.userId === m.id ? roleDraft.role : "editor") === "society_chair" && (
+                                <select
+                                  className="rounded border border-input bg-background px-1.5 py-1 text-[10px]"
+                                  value={roleDraft.userId === m.id ? roleDraft.society : ""}
+                                  onChange={(e) =>
+                                    setRoleDraft((d) => ({ userId: m.id, role: d.userId === m.id ? d.role : "society_chair", society: e.target.value }))
+                                  }
+                                >
+                                  <option value="">Society…</option>
+                                  {societies.map((s) => (
+                                    <option key={s.slug} value={s.slug}>{s.shortName}</option>
+                                  ))}
+                                </select>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const role = roleDraft.userId === m.id ? roleDraft.role : "editor";
+                                  const society = roleDraft.userId === m.id ? roleDraft.society : "";
+                                  void assignRole(m.id, role, society);
+                                }}
+                                className="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary hover:bg-primary/20"
+                              >
+                                + Role
+                              </button>
+                            </div>
+                          </td>
                           <td className="py-3">
                             <button onClick={() => deleteMember(m.id)}
                               className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors">
@@ -427,7 +577,9 @@ function AdminPage() {
             <h2 className="text-lg font-semibold mb-4">Manage Societies</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {dbSocieties.map((s) => {
-                const canEditThis = canEdit && (user?.id ? true : false) && (chairSocieties.includes(s.slug) || chairSocieties.length === 0 /* assuming if empty they are global admin based on canEdit, but actually useAuth logic needs to be respected: wait, let's just allow if canEdit, RLS handles backend */);
+                const canEditThis =
+                  canEdit &&
+                  (chairSocieties.length === 0 || chairSocieties.includes(s.slug));
                 return (
                   <article key={s.slug} className="rounded-xl border border-border p-5">
                     <div className="flex items-center gap-3 mb-2">
@@ -459,9 +611,13 @@ function AdminPage() {
                         <p className="text-sm font-medium text-primary mt-1">{s.tagline}</p>
                         <p className="mt-2 text-sm text-muted-foreground">{s.description}</p>
                         <div className="mt-4">
-                          <button onClick={() => setEditingSociety(s)} className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-secondary">
-                            Edit details
-                          </button>
+                          {canEditThis ? (
+                            <button onClick={() => setEditingSociety(s)} className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-secondary">
+                              Edit details
+                            </button>
+                          ) : (
+                            <p className="text-xs text-muted-foreground">Only branch leadership or this society&apos;s chair can edit.</p>
+                          )}
                         </div>
                       </>
                     )}
@@ -469,6 +625,69 @@ function AdminPage() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* ─── Messages Tab ─── */}
+        {tab === "messages" && (
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-lg font-semibold mb-4">Contact Messages ({contactMessages.length})</h2>
+            {contactMessages.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No messages yet.</p>
+            ) : (
+              <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                {contactMessages.map((m) => (
+                  <article key={m.id} className="rounded-lg border border-border p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold">{m.name}</p>
+                        <a href={`mailto:${m.email}`} className="text-xs text-primary hover:underline">{m.email}</a>
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {new Date(m.created_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-sm font-medium">{m.subject}</p>
+                    <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{m.message}</p>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── Newsletter Tab ─── */}
+        {tab === "newsletter" && (
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="text-lg font-semibold mb-4">Newsletter Subscribers ({newsletterSubs.length})</h2>
+            {newsletterSubs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No subscribers yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      <th className="pb-3 pr-6">Name</th>
+                      <th className="pb-3 pr-6">Email</th>
+                      <th className="pb-3">Subscribed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {newsletterSubs.map((s) => (
+                      <tr key={s.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
+                        <td className="py-3 pr-6 font-medium">{s.name}</td>
+                        <td className="py-3 pr-6">
+                          <a href={`mailto:${s.email}`} className="text-primary hover:underline">{s.email}</a>
+                        </td>
+                        <td className="py-3 text-muted-foreground text-xs">
+                          {new Date(s.subscribed_at).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </section>

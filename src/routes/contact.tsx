@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Mail, MapPin, Send } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
+import { supabase } from "@/integrations/supabase/client";
 import contactCampus from "@/assets/contact-campus.png";
 
 export const Route = createFileRoute("/contact")({
@@ -28,10 +29,28 @@ export const Route = createFileRoute("/contact")({
 
 function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSent(true);
+    setBusy(true);
+    setError(null);
+    const data = new FormData(e.currentTarget);
+    const { error: err } = await supabase.from("contact_messages").insert({
+      name: data.get("name") as string,
+      email: data.get("email") as string,
+      subject: data.get("subject") as string,
+      message: data.get("message") as string,
+    });
+    setBusy(false);
+    if (err) {
+      setError(err.message);
+    } else {
+      setSent(true);
+      formRef.current?.reset();
+    }
   }
 
   return (
@@ -60,7 +79,7 @@ function ContactPage() {
       </section>
 
       <section className="section-shell grid gap-10 py-16 md:grid-cols-[1fr_0.8fr]">
-        <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-7">
+        <form ref={formRef} onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-7">
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="text-sm font-medium">
               Name
@@ -99,13 +118,15 @@ function ContactPage() {
           </label>
           <button
             type="submit"
-            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            disabled={busy}
+            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
           >
-            <Send className="h-4 w-4" /> Send message
+            <Send className="h-4 w-4" /> {busy ? "Sending…" : "Send message"}
           </button>
+          {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
           {sent && (
             <p className="mt-4 text-sm text-primary">
-              Thanks — your message has been noted. We'll reply by email soon.
+              ✓ Message received — we'll reply by email soon.
             </p>
           )}
         </form>

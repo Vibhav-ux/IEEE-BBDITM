@@ -3,7 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "counsellor" | "chair" | "society_chair" | "editor" | "member";
+export type AppRole = "counsellor" | "chair" | "secretary" | "society_chair" | "editor" | "member";
 
 type RoleRow = { role: AppRole; society: string | null };
 

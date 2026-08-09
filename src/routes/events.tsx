@@ -42,6 +42,7 @@ type EventItem = {
   status: string;
   description: string;
   video_url?: string;
+  cover_image_url?: string;
 };
 
 function EventsPage() {
@@ -51,7 +52,7 @@ function EventsPage() {
   useEffect(() => {
     supabase
       .from("events")
-      .select("title, description, event_date, date_label, type, status, video_url")
+      .select("title, description, event_date, date_label, type, status, video_url, cover_image_url")
       .order("event_date", { ascending: true })
       .then(({ data }) => {
         if (data && data.length > 0) {
@@ -63,6 +64,7 @@ function EventsPage() {
               status: e.status,
               description: e.description ?? "",
               video_url: e.video_url ?? undefined,
+              cover_image_url: e.cover_image_url ?? undefined,
             })),
           );
         }
@@ -130,7 +132,7 @@ function EventsPage() {
                   />
                 ) : (
                   <img
-                    src={eventCardImages[i % eventCardImages.length]}
+                    src={e.cover_image_url ?? eventCardImages[i % eventCardImages.length]}
                     alt={e.title}
                     loading="lazy"
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

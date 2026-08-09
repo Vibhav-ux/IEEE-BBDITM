@@ -13,8 +13,8 @@ export function SiteFooter() {
           </p>
           <div className="mt-5 flex gap-3">
             {[
-              { Icon: Linkedin, href: "https://www.linkedin.com/", label: "LinkedIn" },
-              { Icon: Instagram, href: "https://www.instagram.com/", label: "Instagram" },
+              { Icon: Linkedin, href: "https://www.linkedin.com/company/ieee-bbditm-student-branch/", label: "LinkedIn" },
+              { Icon: Instagram, href: "https://www.instagram.com/ieeebbditm/", label: "Instagram" },
               {
                 Icon: Youtube,
                 href: "https://www.youtube.com/channel/UCzWiM2vDa7y14JhyFxCLGNQ",

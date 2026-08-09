@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       events: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           created_by: string | null
           date_label: string | null
@@ -23,11 +24,14 @@ export type Database = {
           event_date: string | null
           id: string
           location: string | null
+          society: string | null
           status: string
           title: string
           type: string
+          video_url: string | null
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           date_label?: string | null
@@ -35,11 +39,14 @@ export type Database = {
           event_date?: string | null
           id?: string
           location?: string | null
+          society?: string | null
           status?: string
           title: string
           type?: string
+          video_url?: string | null
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           date_label?: string | null
@@ -47,9 +54,11 @@ export type Database = {
           event_date?: string | null
           id?: string
           location?: string | null
+          society?: string | null
           status?: string
           title?: string
           type?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -122,6 +131,7 @@ export type Database = {
           branch: string | null
           created_at: string
           email: string | null
+          enrollment_no: string | null
           full_name: string
           id: string
           ieee_member_id: string | null
@@ -135,6 +145,7 @@ export type Database = {
           branch?: string | null
           created_at?: string
           email?: string | null
+          enrollment_no?: string | null
           full_name?: string
           id: string
           ieee_member_id?: string | null
@@ -148,6 +159,7 @@ export type Database = {
           branch?: string | null
           created_at?: string
           email?: string | null
+          enrollment_no?: string | null
           full_name?: string
           id?: string
           ieee_member_id?: string | null
@@ -155,6 +167,33 @@ export type Database = {
           society?: string | null
           updated_at?: string
           year_of_study?: string | null
+        }
+        Relationships: []
+      }
+      societies: {
+        Row: {
+          color: string | null
+          description: string | null
+          name: string
+          short_name: string
+          slug: string
+          tagline: string | null
+        }
+        Insert: {
+          color?: string | null
+          description?: string | null
+          name: string
+          short_name: string
+          slug: string
+          tagline?: string | null
+        }
+        Update: {
+          color?: string | null
+          description?: string | null
+          name?: string
+          short_name?: string
+          slug?: string
+          tagline?: string | null
         }
         Relationships: []
       }
@@ -199,7 +238,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "counsellor" | "chair" | "society_chair" | "editor" | "member"
+      app_role: "counsellor" | "chair" | "secretary" | "society_chair" | "editor" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -327,7 +366,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["counsellor", "chair", "society_chair", "editor", "member"],
+      app_role: ["counsellor", "chair", "secretary", "society_chair", "editor", "member"],
     },
   },
 } as const
