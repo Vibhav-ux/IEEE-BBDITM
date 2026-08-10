@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { UserPlus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import { UserPlus, Trash2, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 import { societies as fallbackSocieties } from "@/data/site";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,14 +83,18 @@ function ChaptersPage() {
     const { data: soc } = await supabase.from("societies").select("*").order("name");
     if (soc && soc.length > 0) {
       setDbSocieties(
-        soc.map((s) => ({
-          slug: s.slug,
-          name: s.name,
-          shortName: s.short_name,
-          tagline: s.tagline || "",
-          description: s.description || "",
-          color: s.color || "#006699",
-        })),
+        soc.map((s) => {
+          const localData = fallbackSocieties.find((f) => f.slug === s.slug);
+          return {
+            slug: s.slug,
+            name: s.name,
+            shortName: s.short_name,
+            tagline: s.tagline || "",
+            description: s.description || "",
+            color: s.color || "#006699",
+            url: localData?.url,
+          };
+        }),
       );
     }
 
@@ -244,11 +248,26 @@ function ChaptersPage() {
 
               {/* Content */}
               <div className="p-6 flex-1 flex flex-col gap-4">
-                <div>
-                  <h2 className="text-lg font-semibold">{c.name}</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {c.description}
-                  </p>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h2 className="text-lg font-semibold">{c.name}</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {c.description}
+                    </p>
+                  </div>
+                  {/* @ts-ignore - URL exists from local data mapping */}
+                  {c.url && (
+                    <a
+                      // @ts-ignore
+                      href={c.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex shrink-0 items-center justify-center rounded-full bg-secondary/50 p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                      title="Visit official website"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
                 </div>
 
                 {/* Leadership strip */}

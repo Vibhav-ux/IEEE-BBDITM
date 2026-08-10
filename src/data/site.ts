@@ -9,6 +9,7 @@ export const societies = [
     description:
       "Hackathons, open-source sprints and hands-on workshops on AI, cloud and modern web engineering.",
     color: "#0072C6",
+    url: "https://www.computer.org/",
   },
   {
     slug: "pes",
@@ -18,6 +19,7 @@ export const societies = [
     description:
       "Industry talks, plant visits and PES Day activities focused on renewable energy and smart grids.",
     color: "#00843D",
+    url: "https://www.ieee-pes.org/",
   },
   {
     slug: "wie",
@@ -27,6 +29,7 @@ export const societies = [
     description:
       "Mentorship circles, leadership sessions and outreach that support women pursuing engineering careers.",
     color: "#702F8A",
+    url: "https://wie.ieee.org/",
   },
   {
     slug: "sight",
@@ -36,6 +39,7 @@ export const societies = [
     description:
       "Community projects that apply engineering to local problems in education, health and sustainability.",
     color: "#E87722",
+    url: "https://sight.ieee.org/",
   },
   {
     slug: "sps",
@@ -45,6 +49,7 @@ export const societies = [
     description:
       "Workshops and study groups on DSP, machine learning, image processing and communications systems.",
     color: "#0077B6",
+    url: "https://signalprocessingsociety.org/",
   },
   {
     slug: "pels",
@@ -54,6 +59,7 @@ export const societies = [
     description:
       "Technical talks, lab sessions and industry visits on power electronics, converters and motor drives.",
     color: "#C8102E",
+    url: "https://www.ieee-pels.org/",
   },
   {
     slug: "emb",
@@ -63,6 +69,7 @@ export const societies = [
     description:
       "Explorations at the intersection of engineering and healthcare — biomedical devices, biosignal processing and health-tech innovation.",
     color: "#005A9C",
+    url: "https://www.embs.org/",
   },
 ];
 

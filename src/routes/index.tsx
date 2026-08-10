@@ -57,13 +57,22 @@ function Index() {
     <>
       {/* ─── Hero Section ─── */}
       <section className="relative overflow-hidden min-h-[85vh] flex items-center">
-        <img
-          src={campusImage}
-          alt="BBDITM Campus aerial view"
-          width={1600}
-          height={1100}
+        {/* Auto-playing background video */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
+        >
+          <source src="/campus-video-cropped.mp4" type="video/mp4" />
+          {/* Fallback image */}
+          <img
+            src={campusImage}
+            alt="BBDITM Campus aerial view"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </video>
         {/* Warm, inviting overlay — dark enough for readability, light enough to feel open */}
         <div className="absolute inset-0 bg-linear-to-r from-black/70 via-black/50 to-black/25" />
         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent" />
@@ -138,21 +147,7 @@ function Index() {
           </dl>
         </div>
       </section>
-      {/* Soft wave divider */}
-      <div className="relative -mb-px">
-        <svg
-          viewBox="0 0 1440 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-8 md:h-10"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 20C240 5 480 35 720 20C960 5 1200 35 1440 20V40H0Z"
-            fill="oklch(0.97 0.012 250)"
-          />
-        </svg>
-      </div>
+
 
       {/* ─── Campus Life Visual Strip ─── */}
       <section className="border-b border-border section-breathe py-4">
@@ -197,7 +192,13 @@ function Index() {
         </div>
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {societies.slice(0, 3).map((c) => (
-            <article key={c.slug} className="group overflow-hidden rounded-xl card-elevated">
+            <a
+              href={c.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              key={c.slug}
+              className="group overflow-hidden rounded-xl card-elevated block"
+            >
               <div className="relative h-40 overflow-hidden">
                 <img
                   src={chapterImages[c.slug]}
@@ -215,26 +216,12 @@ function Index() {
                   {c.description}
                 </p>
               </div>
-            </article>
+            </a>
           ))}
         </div>
       </section>
 
-      {/* Soft wave divider */}
-      <div className="relative -mb-px">
-        <svg
-          viewBox="0 0 1440 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-full h-8 md:h-10"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 20C360 35 720 5 1080 20C1260 28 1380 15 1440 20V40H0Z"
-            fill="oklch(0.97 0.012 250)"
-          />
-        </svg>
-      </div>
+
 
       {/* ─── What We Do (split with image) ─── */}
       <section className="section-breathe">
