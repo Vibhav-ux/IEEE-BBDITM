@@ -8,6 +8,42 @@ export type Database = {
   };
   public: {
     Tables: {
+      awards: {
+        Row: {
+          id: string;
+          title: string;
+          recipient: string;
+          category: string;
+          year: number;
+          description: string | null;
+          image_url: string | null;
+          awarded_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          recipient: string;
+          category?: string;
+          year: number;
+          description?: string | null;
+          image_url?: string | null;
+          awarded_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          recipient?: string;
+          category?: string;
+          year?: number;
+          description?: string | null;
+          image_url?: string | null;
+          awarded_by?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       events: {
         Row: {
           cover_image_url: string | null;
@@ -111,6 +147,7 @@ export type Database = {
           created_at: string;
           id: string;
           image_url: string;
+          show_on_home: boolean;
           storage_path: string | null;
           title: string | null;
           uploaded_by: string | null;
@@ -121,6 +158,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           image_url: string;
+          show_on_home?: boolean;
           storage_path?: string | null;
           title?: string | null;
           uploaded_by?: string | null;
@@ -131,6 +169,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           image_url?: string;
+          show_on_home?: boolean;
           storage_path?: string | null;
           title?: string | null;
           uploaded_by?: string | null;
@@ -248,6 +287,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      site_images: {
+        Row: {
+          key: string;
+          image_url: string;
+          label: string | null;
+          section: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          key: string;
+          image_url: string;
+          label?: string | null;
+          section?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          key?: string;
+          image_url?: string;
+          label?: string | null;
+          section?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
       user_roles: {
         Row: {
           created_at: string;
@@ -269,6 +332,36 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"];
           society?: string | null;
           user_id?: string;
+        };
+        Relationships: [];
+      };
+      team_posters: {
+        Row: {
+          id: string;
+          session: string;
+          label: string | null;
+          image_url: string;
+          storage_path: string | null;
+          show_on_home: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session: string;
+          label?: string | null;
+          image_url: string;
+          storage_path?: string | null;
+          show_on_home?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          session?: string;
+          label?: string | null;
+          image_url?: string;
+          storage_path?: string | null;
+          show_on_home?: boolean;
+          created_at?: string;
         };
         Relationships: [];
       };

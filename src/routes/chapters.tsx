@@ -92,7 +92,7 @@ function ChaptersPage() {
             tagline: s.tagline || "",
             description: s.description || "",
             color: s.color || "#006699",
-            url: localData?.url,
+            url: localData?.url ?? "",
           };
         }),
       );

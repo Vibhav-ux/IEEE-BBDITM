@@ -1,8 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { ImageIcon, ExternalLink } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { faculty, loadTeamFromDb, societies, SOCIETY_SLUGS, type TeamPerson } from "@/lib/team";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/office-bearers")({
   head: () => ({
@@ -19,6 +21,14 @@ export const Route = createFileRoute("/office-bearers")({
   }),
   component: OfficeBearersPage,
 });
+
+type TeamPoster = {
+  id: string;
+  session: string;
+  label: string | null;
+  image_url: string;
+  storage_path: string | null;
+};
 
 function PersonCard({ person }: { person: TeamPerson }) {
   const initials = person.name
@@ -55,6 +65,9 @@ function OfficeBearersPage() {
   const [branch, setBranch] = useState<TeamPerson[]>([]);
   const [bySociety, setBySociety] = useState<Record<string, TeamPerson[]>>({});
   const [loading, setLoading] = useState(true);
+  const [posters, setPosters] = useState<TeamPoster[]>([]);
+  const [postersLoading, setPostersLoading] = useState(true);
+  const [activePoster, setActivePoster] = useState(0);
 
   useEffect(() => {
     loadTeamFromDb().then((data) => {
@@ -62,6 +75,21 @@ function OfficeBearersPage() {
       setBySociety(data.bySociety);
       setLoading(false);
     });
+
+    supabase
+      .from("team_posters")
+      .select("id, session, label, image_url, storage_path")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        const items = (data ?? []).map((p) => ({
+          ...p,
+          image_url: p.storage_path
+            ? supabase.storage.from("gallery").getPublicUrl(p.storage_path).data.publicUrl
+            : p.image_url,
+        }));
+        setPosters(items as TeamPoster[]);
+        setPostersLoading(false);
+      });
   }, []);
 
   return (
@@ -72,8 +100,57 @@ function OfficeBearersPage() {
         description="The IEEE BBDITM Student Branch Executive Committee for the academic year 2025–26."
       />
 
+      {/* ── Team Posters ── */}
+      {!postersLoading && posters.length > 0 && (
+        <section className="section-shell py-12">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-bold md:text-2xl text-shimmer">Team Posters</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Group photos and collages for each session.
+              </p>
+            </div>
+          </div>
+
+          {/* Main poster display */}
+          <div className="overflow-hidden rounded-2xl border border-border shadow-xl bg-black">
+            <img
+              src={posters[activePoster]?.image_url}
+              alt={`Team poster — ${posters[activePoster]?.session}`}
+              className="w-full object-contain max-h-[70vh]"
+            />
+          </div>
+
+          {/* Session selector tabs */}
+          {posters.length > 1 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {posters.map((p, i) => (
+                <button
+                  key={p.id}
+                  onClick={() => setActivePoster(i)}
+                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                    i === activePoster
+                      ? "bg-primary text-primary-foreground shadow"
+                      : "bg-secondary text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {p.session}{p.label ? ` — ${p.label}` : ""}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {posters.length === 1 && posters[0] && (
+            <p className="mt-3 text-sm text-muted-foreground text-center">
+              Session: <span className="font-semibold text-foreground">{posters[0].session}</span>
+              {posters[0].label && ` — ${posters[0].label}`}
+            </p>
+          )}
+        </section>
+      )}
+
       <section className="section-shell py-16">
-        <h2 className="text-xl font-bold md:text-2xl text-shimmer">Faculty & Leadership</h2>
+        <h2 className="text-xl font-bold md:text-2xl text-shimmer">Faculty &amp; Leadership</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Institutional leadership guiding the IEEE BBDITM Student Branch.
         </p>
@@ -94,6 +171,10 @@ function OfficeBearersPage() {
         </p>
         {loading ? (
           <p className="mt-8 text-sm text-muted-foreground">Loading committee…</p>
+        ) : branch.length === 0 ? (
+          <p className="mt-8 text-sm text-muted-foreground">
+            No committee members added yet. Assign positions or roles from the Admin panel.
+          </p>
         ) : (
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             {branch.map((m) => (

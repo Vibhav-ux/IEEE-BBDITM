@@ -6,6 +6,7 @@ import {
   Users,
   Calendar,
   Image,
+  ImagePlus,
   Video,
   Building2,
   Mail,
@@ -14,6 +15,9 @@ import {
   Check,
   X,
   UserPlus,
+  Trophy,
+  LayoutTemplate,
+  Home,
 } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
@@ -21,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth, type AppRole } from "@/lib/auth";
 import { loadPhotos, type Photo } from "@/lib/gallery";
 import { societies } from "@/data/site";
+import { SITE_IMAGE_SLOTS, type SiteImageKey } from "@/lib/siteImages";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -112,6 +117,26 @@ type PositionRow = {
   end_date: string | null;
 };
 
+type AwardRow = {
+  id: string;
+  title: string;
+  recipient: string;
+  category: string;
+  year: number;
+  description: string | null;
+  image_url: string | null;
+  awarded_by: string | null;
+};
+
+type PosterRow = {
+  id: string;
+  session: string;
+  label: string | null;
+  image_url: string;
+  storage_path: string | null;
+  show_on_home: boolean;
+};
+
 const inputClass = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 const emptyEvent = {
   title: "",
@@ -130,7 +155,7 @@ function AdminPage() {
   const { canEdit, canCreateEvents, canManageMembers, isCounsellor, user, chairSocieties } =
     useAuth();
   const [tab, setTab] = useState<
-    "events" | "photos" | "members" | "societies" | "messages" | "newsletter" | "requests"
+    "events" | "photos" | "members" | "societies" | "messages" | "newsletter" | "requests" | "images" | "awards" | "posters"
   >("events");
   const [events, setEvents] = useState<EventRow[]>([]);
   const [photos, setPhotos] = useState<(Photo & { url: string })[]>([]);
@@ -154,11 +179,29 @@ function AdminPage() {
     startDate: string;
   }>({ userId: "", title: "", society: "", startDate: new Date().toISOString().slice(0, 10) });
   const [form, setForm] = useState(emptyEvent);
-  const [photoMeta, setPhotoMeta] = useState({ title: "", album: "General", caption: "" });
+  const [photoMeta, setPhotoMeta] = useState({ title: "", album: "General", caption: "", showOnHome: false });
   const [file, setFile] = useState<File | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Site images state
+  const [siteImages, setSiteImages] = useState<Record<string, string>>({});
+  const [imageUploadKey, setImageUploadKey] = useState<SiteImageKey | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
+  // Awards state
+  const [awards, setAwards] = useState<AwardRow[]>([]);
+  const [awardForm, setAwardForm] = useState({
+    title: "", recipient: "", category: "General",
+    year: new Date().getFullYear(), description: "", awarded_by: "",
+  });
+  const [awardFile, setAwardFile] = useState<File | null>(null);
+  const [awardBusy, setAwardBusy] = useState(false);
+  // Posters state
+  const [posters, setPosters] = useState<PosterRow[]>([]);
+  const [posterForm, setPosterForm] = useState({ session: "", label: "" });
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [posterBusy, setPosterBusy] = useState(false);
 
   async function load() {
     const { data } = await supabase
@@ -175,7 +218,6 @@ function AdminPage() {
     if (soc && soc.length > 0) {
       setDbSocieties(soc as SocietyRow[]);
     } else {
-      // Fallback if table is empty
       setDbSocieties(
         societies.map((s) => ({
           ...s,
@@ -196,7 +238,6 @@ function AdminPage() {
       .select("*")
       .order("subscribed_at", { ascending: false });
     setNewsletterSubs((subs ?? []) as NewsletterRow[]);
-    // Pending members for counsellor
     const { data: pending } = await supabase
       .from("profiles")
       .select(
@@ -205,13 +246,30 @@ function AdminPage() {
       .eq("status", "pending")
       .order("created_at", { ascending: false });
     setPendingMembers((pending ?? []) as PendingMemberRow[]);
-    // All positions for position management
     const { data: positions } = await supabase
       .from("positions")
       .select("id, user_id, title, society, start_date, end_date")
       .is("end_date", null)
       .order("title");
     setAllPositions((positions ?? []) as PositionRow[]);
+    // Load site images
+    const { data: imgs } = await supabase.from("site_images").select("key, image_url");
+    if (imgs) {
+      const map: Record<string, string> = {};
+      imgs.forEach((r: { key: string; image_url: string }) => { map[r.key] = r.image_url; });
+      setSiteImages(map);
+    }
+    const { data: awardData } = await supabase
+      .from("awards")
+      .select("*")
+      .order("year", { ascending: false })
+      .order("created_at", { ascending: false });
+    setAwards((awardData ?? []) as AwardRow[]);
+    const { data: posterData } = await supabase
+      .from("team_posters")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setPosters((posterData ?? []) as PosterRow[]);
   }
 
   useEffect(() => {
@@ -251,10 +309,10 @@ function AdminPage() {
       event_date: form.event_date || null,
       date_label: form.event_date
         ? new Date(form.event_date).toLocaleDateString(undefined, {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
         : null,
       type: form.type,
       status: form.status,
@@ -295,12 +353,13 @@ function AdminPage() {
       caption: photoMeta.caption || null,
       image_url: path,
       storage_path: path,
+      show_on_home: photoMeta.showOnHome,
       uploaded_by: user?.id ?? null,
     });
     setBusy(false);
     if (insErr) return setError(insErr.message);
     setFile(null);
-    setPhotoMeta({ title: "", album: "General", caption: "" });
+    setPhotoMeta({ title: "", album: "General", caption: "", showOnHome: false });
     void load();
   }
 
@@ -427,23 +486,126 @@ function AdminPage() {
     void load();
   }
 
+  async function createAward(e: React.FormEvent) {
+    e.preventDefault();
+    if (!awardForm.title || !awardForm.recipient) return;
+    setAwardBusy(true);
+    setError(null);
+    let image_url: string | null = null;
+    if (awardFile) {
+      const path = `awards/${Date.now()}-${awardFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("gallery").upload(path, awardFile);
+      if (upErr) { setAwardBusy(false); return setError(upErr.message); }
+      image_url = supabase.storage.from("gallery").getPublicUrl(path).data.publicUrl;
+    }
+    const { error: err } = await supabase.from("awards").insert({
+      title: awardForm.title,
+      recipient: awardForm.recipient,
+      category: awardForm.category || "General",
+      year: awardForm.year,
+      description: awardForm.description || null,
+      awarded_by: awardForm.awarded_by || null,
+      image_url,
+    });
+    setAwardBusy(false);
+    if (err) return setError(err.message);
+    setAwardForm({ title: "", recipient: "", category: "General", year: new Date().getFullYear(), description: "", awarded_by: "" });
+    setAwardFile(null);
+    void load();
+  }
+
+  async function deleteAward(id: string) {
+    if (!confirm("Delete this award?")) return;
+    await supabase.from("awards").delete().eq("id", id);
+    void load();
+  }
+
+  async function uploadPoster(e: React.FormEvent) {
+    e.preventDefault();
+    if (!posterFile || !posterForm.session) return;
+    setPosterBusy(true);
+    setError(null);
+    const path = `posters/${Date.now()}-${posterFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const { error: upErr } = await supabase.storage.from("gallery").upload(path, posterFile);
+    if (upErr) { setPosterBusy(false); return setError(upErr.message); }
+    const image_url = supabase.storage.from("gallery").getPublicUrl(path).data.publicUrl;
+    const { error: dbErr } = await supabase.from("team_posters").insert({
+      session: posterForm.session,
+      label: posterForm.label || null,
+      image_url,
+      storage_path: path,
+      show_on_home: false,
+    });
+    setPosterBusy(false);
+    if (dbErr) return setError(dbErr.message);
+    setPosterForm({ session: "", label: "" });
+    setPosterFile(null);
+    void load();
+  }
+
+  async function deletePoster(id: string) {
+    const p = posters.find((x) => x.id === id);
+    if (!confirm("Delete this poster?")) return;
+    if (p?.storage_path) await supabase.storage.from("gallery").remove([p.storage_path]);
+    await supabase.from("team_posters").delete().eq("id", id);
+    void load();
+  }
+
+  async function togglePosterHome(id: string, current: boolean) {
+    await supabase.from("team_posters").update({ show_on_home: !current }).eq("id", id);
+    void load();
+  }
+
   const tabs = [
     { key: "events" as const, label: "Events", icon: Calendar },
     { key: "photos" as const, label: "Photos", icon: Image },
+    { key: "posters" as const, label: "Posters", icon: LayoutTemplate },
     { key: "members" as const, label: "Members", icon: Users },
     { key: "societies" as const, label: "Societies", icon: Building2 },
+    { key: "awards" as const, label: "Awards", icon: Trophy },
+    { key: "images" as const, label: "Images", icon: ImagePlus },
     { key: "messages" as const, label: "Messages", icon: Mail },
     { key: "newsletter" as const, label: "Newsletter", icon: Newspaper },
     ...(isCounsellor
       ? [
-          {
-            key: "requests" as const,
-            label: `Requests${pendingMembers.length > 0 ? ` (${pendingMembers.length})` : ""}`,
-            icon: ClipboardList,
-          },
-        ]
+        {
+          key: "requests" as const,
+          label: `Requests${pendingMembers.length > 0 ? ` (${pendingMembers.length})` : ""}`,
+          icon: ClipboardList,
+        },
+      ]
       : []),
   ];
+
+  // Group image slots by section
+  const imageSlotsBySection = SITE_IMAGE_SLOTS.reduce<Record<string, typeof SITE_IMAGE_SLOTS[number][]>>(
+    (acc, slot) => {
+      if (!acc[slot.section]) acc[slot.section] = [];
+      acc[slot.section]!.push(slot);
+      return acc;
+    },
+    {},
+  );
+
+  async function uploadSiteImage(e: React.FormEvent) {
+    e.preventDefault();
+    if (!imageFile || !imageUploadKey) return;
+    setImageUploading(true);
+    setError(null);
+    const path = `site/${imageUploadKey}-${Date.now()}.${imageFile.name.split(".").pop()}`;
+    const { error: upErr } = await supabase.storage.from("gallery").upload(path, imageFile, { upsert: true });
+    if (upErr) { setImageUploading(false); return setError(upErr.message); }
+    const { data: urlData } = supabase.storage.from("gallery").getPublicUrl(path);
+    const { error: dbErr } = await supabase.from("site_images").upsert(
+      { key: imageUploadKey, image_url: urlData.publicUrl, updated_at: new Date().toISOString() },
+      { onConflict: "key" },
+    );
+    setImageUploading(false);
+    if (dbErr) return setError(dbErr.message);
+    setImageFile(null);
+    setImageUploadKey(null);
+    void load();
+  }
 
   return (
     <>
@@ -461,11 +623,10 @@ function AdminPage() {
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${
-                tab === t.key
+              className={`flex flex-1 items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium transition-all ${tab === t.key
                   ? "bg-white text-primary shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <t.icon className="h-4 w-4" />
               {t.label}
@@ -656,6 +817,18 @@ function AdminPage() {
                 value={photoMeta.caption}
                 onChange={(e) => setPhotoMeta({ ...photoMeta, caption: e.target.value })}
               />
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="show-on-home"
+                  checked={photoMeta.showOnHome}
+                  onChange={(e) => setPhotoMeta({ ...photoMeta, showOnHome: e.target.checked })}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                <span className="text-sm text-muted-foreground">
+                  Show on home page slideshow
+                </span>
+              </label>
               <button
                 disabled={busy || !file}
                 className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
@@ -807,25 +980,25 @@ function AdminPage() {
                               </select>
                               {(roleDraft.userId === m.id ? roleDraft.role : "editor") ===
                                 "society_chair" && (
-                                <select
-                                  className="rounded border border-input bg-background px-1.5 py-1 text-[10px]"
-                                  value={roleDraft.userId === m.id ? roleDraft.society : ""}
-                                  onChange={(e) =>
-                                    setRoleDraft((d) => ({
-                                      userId: m.id,
-                                      role: d.userId === m.id ? d.role : "society_chair",
-                                      society: e.target.value,
-                                    }))
-                                  }
-                                >
-                                  <option value="">Society…</option>
-                                  {societies.map((s) => (
-                                    <option key={s.slug} value={s.slug}>
-                                      {s.shortName}
-                                    </option>
-                                  ))}
-                                </select>
-                              )}
+                                  <select
+                                    className="rounded border border-input bg-background px-1.5 py-1 text-[10px]"
+                                    value={roleDraft.userId === m.id ? roleDraft.society : ""}
+                                    onChange={(e) =>
+                                      setRoleDraft((d) => ({
+                                        userId: m.id,
+                                        role: d.userId === m.id ? d.role : "society_chair",
+                                        society: e.target.value,
+                                      }))
+                                    }
+                                  >
+                                    <option value="">Society…</option>
+                                    {societies.map((s) => (
+                                      <option key={s.slug} value={s.slug}>
+                                        {s.shortName}
+                                      </option>
+                                    ))}
+                                  </select>
+                                )}
                               <button
                                 type="button"
                                 onClick={() => {
@@ -1206,6 +1379,278 @@ function AdminPage() {
             </div>
           </div>
         )}
+        {/* ─── Images Tab ─── */}
+        {tab === "images" && (
+          <div className="space-y-8">
+            <p className="text-sm text-muted-foreground">
+              Upload a new image to replace any photo on the site. Changes take effect immediately.
+            </p>
+            {Object.entries(imageSlotsBySection).map(([section, slots]) => (
+              <div key={section}>
+                <h2 className="mb-4 text-base font-bold text-muted-foreground uppercase tracking-wider">{section}</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {slots.map((slot) => (
+                    <div key={slot.key} className="rounded-xl border border-border bg-card overflow-hidden">
+                      {/* Current image preview */}
+                      <div className="relative h-32 bg-secondary/40">
+                        {siteImages[slot.key] ? (
+                          <img
+                            src={siteImages[slot.key]}
+                            alt={slot.label}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center">
+                            <ImagePlus className="h-8 w-8 text-muted-foreground/40" />
+                          </div>
+                        )}
+                        {siteImages[slot.key] && (
+                          <span className="absolute top-2 right-2 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-bold text-white">Custom</span>
+                        )}
+                      </div>
+                      {/* Upload form */}
+                      <div className="p-3">
+                        <p className="text-xs font-semibold mb-2">{slot.label}</p>
+                        {imageUploadKey === slot.key ? (
+                          <form onSubmit={uploadSiteImage} className="space-y-2">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                              onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                type="submit"
+                                disabled={imageUploading || !imageFile}
+                                className="flex-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-60"
+                              >
+                                {imageUploading ? "Uploading…" : "Upload"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => { setImageUploadKey(null); setImageFile(null); }}
+                                className="rounded-md border border-border px-3 py-1.5 text-xs"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </form>
+                        ) : (
+                          <button
+                            onClick={() => setImageUploadKey(slot.key as SiteImageKey)}
+                            className="w-full rounded-md border border-dashed border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                          >
+                            {siteImages[slot.key] ? "Replace image" : "Upload image"}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {/* ─── Posters Tab ─── */}
+        {tab === "posters" && (
+          <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
+            {/* Upload form */}
+            <form onSubmit={uploadPoster} className="space-y-3 rounded-xl border border-border bg-card p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
+                <LayoutTemplate className="h-4 w-4 text-primary" /> Upload team poster
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Upload a group photo or collage for a session. Mark it "Show on home" to display it on the landing page.
+              </p>
+              <input
+                required
+                className={inputClass}
+                placeholder="Session (e.g. 2025-26) *"
+                value={posterForm.session}
+                onChange={(e) => setPosterForm({ ...posterForm, session: e.target.value })}
+              />
+              <input
+                className={inputClass}
+                placeholder="Label (optional, e.g. Executive Committee)"
+                value={posterForm.label}
+                onChange={(e) => setPosterForm({ ...posterForm, label: e.target.value })}
+              />
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Poster image *</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  required
+                  className={inputClass}
+                  onChange={(e) => setPosterFile(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <button
+                disabled={posterBusy || !posterFile || !posterForm.session}
+                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {posterBusy ? "Uploading…" : "Upload poster"}
+              </button>
+            </form>
+
+            {/* Posters list */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="mb-4 text-lg font-semibold">All posters ({posters.length})</h2>
+              {posters.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No posters uploaded yet.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {posters.map((p) => (
+                    <li
+                      key={p.id}
+                      className="overflow-hidden rounded-xl border border-border/50 hover:bg-secondary/30 transition-colors"
+                    >
+                      <img
+                        src={p.image_url}
+                        alt={p.session}
+                        className="h-32 w-full object-cover"
+                      />
+                      <div className="flex items-center justify-between gap-2 p-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{p.session}</p>
+                          {p.label && <p className="text-xs text-muted-foreground truncate">{p.label}</p>}
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <button
+                            onClick={() => togglePosterHome(p.id, p.show_on_home)}
+                            title={p.show_on_home ? "Remove from home" : "Show on home page"}
+                            className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
+                              p.show_on_home
+                                ? "bg-primary text-primary-foreground"
+                                : "border border-border text-muted-foreground hover:border-primary hover:text-primary"
+                            }`}
+                          >
+                            <Home className="h-3 w-3" />
+                            {p.show_on_home ? "On home" : "Home"}
+                          </button>
+                          <button
+                            onClick={() => deletePoster(p.id)}
+                            className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ─── Awards Tab ─── */}
+        {tab === "awards" && (
+          <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
+            {/* Add form */}
+            <form onSubmit={createAward} className="space-y-3 rounded-xl border border-border bg-card p-6">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
+                <Trophy className="h-4 w-4 text-primary" /> Add award
+              </h2>
+              <input
+                required
+                className={inputClass}
+                placeholder="Award title *"
+                value={awardForm.title}
+                onChange={(e) => setAwardForm({ ...awardForm, title: e.target.value })}
+              />
+              <input
+                required
+                className={inputClass}
+                placeholder="Recipient name / team *"
+                value={awardForm.recipient}
+                onChange={(e) => setAwardForm({ ...awardForm, recipient: e.target.value })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <select
+                  className={inputClass}
+                  value={awardForm.category}
+                  onChange={(e) => setAwardForm({ ...awardForm, category: e.target.value })}
+                >
+                  {["General", "Technical Excellence", "Leadership", "Best Paper", "Humanitarian"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  className={inputClass}
+                  placeholder="Year"
+                  value={awardForm.year}
+                  onChange={(e) => setAwardForm({ ...awardForm, year: Number(e.target.value) })}
+                />
+              </div>
+              <input
+                className={inputClass}
+                placeholder="Awarded by (e.g. IEEE UP Section)"
+                value={awardForm.awarded_by}
+                onChange={(e) => setAwardForm({ ...awardForm, awarded_by: e.target.value })}
+              />
+              <textarea
+                className={inputClass}
+                rows={3}
+                placeholder="Description (optional)"
+                value={awardForm.description}
+                onChange={(e) => setAwardForm({ ...awardForm, description: e.target.value })}
+              />
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Photo (optional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className={inputClass}
+                  onChange={(e) => setAwardFile(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <button
+                disabled={awardBusy || !awardForm.title || !awardForm.recipient}
+                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {awardBusy ? "Saving…" : "Add award"}
+              </button>
+            </form>
+
+            {/* Awards list */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="mb-4 text-lg font-semibold">All awards ({awards.length})</h2>
+              {awards.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No awards added yet.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {awards.map((a) => (
+                    <li
+                      key={a.id}
+                      className="flex items-start justify-between gap-3 rounded-lg border border-border/50 p-3 hover:bg-secondary/30 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate">{a.title}</p>
+                        <p className="text-xs text-primary">{a.recipient}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {a.category} · {a.year}{a.awarded_by ? ` · ${a.awarded_by}` : ""}
+                        </p>
+                        {a.description && (
+                          <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{a.description}</p>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteAward(a.id)}
+                        className="shrink-0 rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
+
       </section>
     </>
   );

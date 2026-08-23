@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { CalendarDays } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
-import { events as fallbackEvents } from "@/data/site";
 import { supabase } from "@/integrations/supabase/client";
-import eventsHero from "@/assets/events-hero.png";
-import eventImage from "@/assets/tech-event.png";
-import workshopImage from "@/assets/workshop-hands-on.png";
-import collaborationImage from "@/assets/students-collaboration.png";
+import eventsHeroFallback from "@/assets/events-hero.png";
+import { useSiteImage } from "@/lib/siteImages";
 
 export const Route = createFileRoute("/events")({
   head: () => ({
@@ -33,8 +30,6 @@ export const Route = createFileRoute("/events")({
 
 const filters = ["All", "Flagship", "Chapter", "Branch", "Workshop"] as const;
 
-const eventCardImages = [eventImage, workshopImage, collaborationImage];
-
 type EventItem = {
   title: string;
   date: string;
@@ -47,15 +42,15 @@ type EventItem = {
 
 function EventsPage() {
   const [active, setActive] = useState<(typeof filters)[number]>("All");
-  const [events, setEvents] = useState<EventItem[]>(fallbackEvents);
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const eventsHero = useSiteImage("hero-events", eventsHeroFallback);
 
   useEffect(() => {
     supabase
       .from("events")
-      .select(
-        "title, description, event_date, date_label, type, status, video_url, cover_image_url",
-      )
-      .order("event_date", { ascending: true })
+      .select("title, description, event_date, date_label, type, status, video_url, cover_image_url")
+      .order("event_date", { ascending: false })
       .then(({ data }) => {
         if (data && data.length > 0) {
           setEvents(
@@ -70,10 +65,12 @@ function EventsPage() {
             })),
           );
         }
+        setLoading(false);
       });
   }, []);
 
   const list = active === "All" ? events : events.filter((e) => e.type === active);
+
 
   return (
     <>
@@ -118,51 +115,71 @@ function EventsPage() {
           ))}
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {list.map((e, i) => (
-            <article key={e.title} className="group overflow-hidden rounded-xl card-elevated">
-              <div className="relative h-48 overflow-hidden bg-black">
-                {e.video_url ? (
-                  <iframe
-                    src={e.video_url.replace("watch?v=", "embed/")}
-                    title={e.title}
-                    className="h-full w-full border-0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <img
-                    src={e.cover_image_url ?? eventCardImages[i % eventCardImages.length]}
-                    alt={e.title}
-                    loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                )}
-                {!e.video_url && (
-                  <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
-                )}
-                <span className="absolute top-3 right-3 rounded-full bg-primary/90 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm z-10 shadow-sm pointer-events-none">
-                  {e.status}
-                </span>
+        {loading ? (
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="rounded-xl border border-border bg-card overflow-hidden animate-pulse">
+                <div className="h-48 bg-secondary/60" />
+                <div className="p-6 space-y-3">
+                  <div className="h-3 w-1/3 rounded bg-secondary/80" />
+                  <div className="h-5 w-2/3 rounded bg-secondary/80" />
+                  <div className="h-3 w-full rounded bg-secondary/60" />
+                </div>
               </div>
-              <div className="p-6">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                    <CalendarDays className="h-4 w-4 text-primary" />
-                    {e.date}
+            ))}
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {list.map((e) => (
+              <article key={e.title} className="group overflow-hidden rounded-xl card-elevated">
+                <div className="relative h-48 overflow-hidden bg-secondary/30">
+                  {e.video_url ? (
+                    <iframe
+                      src={e.video_url.replace("watch?v=", "embed/")}
+                      title={e.title}
+                      className="h-full w-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : e.cover_image_url ? (
+                    <img
+                      src={e.cover_image_url}
+                      alt={e.title}
+                      loading="lazy"
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/10 to-primary/5">
+                      <CalendarDays className="h-10 w-10 text-primary/30" />
+                    </div>
+                  )}
+                  {!e.video_url && (
+                    <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+                  )}
+                  <span className="absolute top-3 right-3 rounded-full bg-primary/90 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white backdrop-blur-sm z-10 shadow-sm pointer-events-none">
+                    {e.status}
                   </span>
                 </div>
-                <h2 className="mt-3 text-lg font-semibold">{e.title}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {e.description}
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                      <CalendarDays className="h-4 w-4 text-primary" />
+                      {e.date}
+                    </span>
+                    <span className="rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">{e.type}</span>
+                  </div>
+                  <h2 className="mt-3 text-lg font-semibold">{e.title}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{e.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
 
-        {list.length === 0 && (
-          <p className="mt-10 text-sm text-muted-foreground">No events in this category yet.</p>
+        {!loading && list.length === 0 && (
+          <p className="mt-10 text-sm text-muted-foreground">
+            No events in this category yet. Add them from the Admin panel.
+          </p>
         )}
       </section>
     </>

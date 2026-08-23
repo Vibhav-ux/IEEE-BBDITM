@@ -141,7 +141,7 @@ function TeamPage() {
       </section>
 
       <section className="section-shell pb-20">
-        <div className="rounded-2xl section-breathe p-8 text-center">
+        <div className="rounded-2xl p-8 text-center" style={{background:"oklch(0.96 0.012 252)"}}>
           <h2 className="text-xl font-bold">Want to see the full committee?</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             View all office bearers with detailed society breakdowns.

@@ -3,8 +3,9 @@ import { Compass, Flag, HeartHandshake } from "lucide-react";
 
 import { PageHeader } from "@/components/site/PageHeader";
 import { stats } from "@/data/site";
-import campusImage from "@/assets/campus-aerial.png";
-import collaborationImage from "@/assets/students-collaboration.png";
+import campusImageFallback from "@/assets/campus-aerial.png";
+import collaborationImageFallback from "@/assets/students-collaboration.png";
+import { useSiteImage } from "@/lib/siteImages";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -46,6 +47,9 @@ const pillars = [
 ];
 
 function AboutPage() {
+  const campusImage        = useSiteImage("about-campus",        campusImageFallback);
+  const collaborationImage = useSiteImage("about-collaboration", collaborationImageFallback);
+
   return (
     <>
       <PageHeader
@@ -54,12 +58,22 @@ function AboutPage() {
         description="The IEEE BBDITM Student Branch operates under the IEEE Uttar Pradesh Section, Region 10, at Babu Banarasi Das Institute of Technology and Management, Lucknow."
       />
 
-      {/* Campus image strip */}
-      <section className="section-shell -mt-8 mb-10">
-        <div className="overflow-hidden rounded-2xl shadow-xl">
-          <img src={campusImage} alt="BBDITM Campus" className="h-64 w-full object-cover md:h-80" />
+      {/* Campus video / image */}
+      <section className="section-shell mb-10">
+        <div className="overflow-hidden rounded-2xl shadow-xl bg-black">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="block h-64 w-full object-cover md:h-80"
+          >
+            <source src="/campus-video-cropped.mp4" type="video/mp4" />
+            <img src={campusImage} alt="BBDITM Campus" className="h-64 w-full object-cover md:h-80" />
+          </video>
         </div>
       </section>
+
 
       <section className="section-shell grid gap-5 pb-4 md:grid-cols-3">
         {pillars.map(({ Icon, title, body }) => (
